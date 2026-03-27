@@ -57,7 +57,6 @@ function makeMocks() {
     generateRefreshToken: vi.fn().mockReturnValue("refresh-token"),
     verifyAccessToken: vi.fn(),
     verifyRefreshToken: vi.fn(),
-    generateOpaqueToken: vi.fn().mockReturnValue("opaque-token"),
     generateOtp: vi.fn().mockReturnValue("123456"),
   };
 

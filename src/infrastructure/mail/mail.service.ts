@@ -1,18 +1,52 @@
-import { IMailService } from "../../core/shared/interfaces/mail.service.interface";
+import nodemailer, { Transporter } from "nodemailer";
+import { IMailService } from "../../core/shared/interfaces/mail.service.interface.js";
+import { mailTemplates } from "./mail.templates.js";
+import { InternalServerException } from "../../core/shared/errors/http.errors.js";
+import { MAIL_ERRORS, MAIL_MESSAGES } from "./mail.constants.js";
 
 export interface MailServiceConfig {
-  hostEmail: string;
-  hostPassword: string;
-  hostPort: number;
-  hostSecure: boolean;
+  host: string;
+  port: number;
+  user: string;
+  pass: string;
+  from: string;
 }
 
 export class MailService implements IMailService {
-  constructor(private readonly config: MailServiceConfig) {}
+  private readonly transporter: Transporter;
 
-  async sendVerificationEmail(email: string, token: string): Promise<void> {}
+  constructor(private readonly config: MailServiceConfig) {
+    this.transporter = nodemailer.createTransport({
+      host: config.host,
+      port: config.port,
+      secure: false,
+      auth: {
+        user: config.user,
+        pass: config.pass,
+      },
+    });
+  }
 
-  async sendPasswordResetEmail(email: string, token: string): Promise<void> {}
+  async sendVerificationEmail(email: string, otp: string): Promise<void> {
+    await this.send(email, mailTemplates.verificationEmail(otp));
+  }
 
-  
+  async sendPasswordResetEmail(email: string, otp: string): Promise<void> {
+    await this.send(email, mailTemplates.passwordResetEmail(otp));
+  }
+
+  // ─── Private ────────────────────────────────────────────────
+
+  private async send(to: string, template: { subject: string; html: string }): Promise<void> {
+    try {
+      await this.transporter.sendMail({
+        from: this.config.from,
+        to,
+        subject: template.subject,
+        html: template.html,
+      });
+    } catch (error) {
+      throw new InternalServerException(MAIL_MESSAGES.MAIL_SEND_FAILED, MAIL_ERRORS.MAIL_SEND_FAILED);
+    }
+  }
 }

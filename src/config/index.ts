@@ -14,6 +14,11 @@ export const ConfigSchema = Type.Object({
   JWT_REFRESH_SECRET: Type.String(),
   JWT_ACCESS_TOKEN_EXPIRY: Type.String({ default: "15m" }),
   JWT_REFRESH_TOKEN_EXPIRY: Type.String({ default: "7d" }),
+  SMTP_HOST: Type.String({ default: "smtp-relay.brevo.com" }),
+  SMTP_PORT: Type.Number({ default: 587 }),
+  SMTP_USER: Type.String(),
+  SMTP_PASS: Type.String(),
+  SMTP_FROM: Type.String(),
 });
 
 export type Config = Static<typeof ConfigSchema>;
