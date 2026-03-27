@@ -1,6 +1,6 @@
 CREATE TYPE "public"."user_role" AS ENUM('provider', 'client');--> statement-breakpoint
 CREATE TABLE "users" (
-	"id" text PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"email" text NOT NULL,
 	"username" text NOT NULL,
 	"password_hash" text NOT NULL,
@@ -18,8 +18,8 @@ CREATE TABLE "users" (
 );
 --> statement-breakpoint
 CREATE TABLE "refresh_tokens" (
-	"id" text PRIMARY KEY NOT NULL,
-	"user_id" text NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"user_id" uuid NOT NULL,
 	"token" text NOT NULL,
 	"expires_at" timestamp NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,

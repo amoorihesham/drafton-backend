@@ -5,6 +5,10 @@ import envPlugin from "@fastify/env";
 import { ConfigSchema } from "./config/index.js";
 import { errorHandler } from "./infrastructure/http/error-handler.js";
 import { createDatabaseConnection } from "./infrastructure/db/connection.js";
+import { TokenService } from "./infrastructure/token/token.service.js";
+import { MailService } from "./infrastructure/mail/mail.service.js";
+import { authRoutes } from "./infrastructure/http/routes/auth.routes.js";
+import { createAuthContainer } from "./infrastructure/containers/auth.container.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -19,7 +23,29 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(helmet);
   await app.register(cors);
 
-  createDatabaseConnection(app.config.DATABASE_URL, app.config.DB_POOL_SIZE);
+  const db = await createDatabaseConnection(app.config.DATABASE_URL, app.config.DB_POOL_SIZE);
+
+  //GLOBAL_SERVICES
+  const tokenService = new TokenService({
+    accessExpiry: app.config.JWT_ACCESS_TOKEN_EXPIRY,
+    accessSecret: app.config.JWT_ACCESS_SECRET,
+    refreshExpiry: app.config.JWT_REFRESH_TOKEN_EXPIRY,
+    refreshSecret: app.config.JWT_REFRESH_SECRET,
+  });
+  const mailService = new MailService({
+    host: app.config.SMTP_HOST,
+    port: app.config.SMTP_PORT,
+    user: app.config.SMTP_USER,
+    pass: app.config.SMTP_PASS,
+    from: app.config.SMTP_FROM,
+  });
+
+  //CONTAINERS
+  const { authController } = createAuthContainer(db, tokenService, mailService, {
+    otpExpiryMinutes: app.config.OTP_EXPIRY_MINUTES,
+    resetOtpExpiryMinutes: app.config.RESET_OTP_EXPIRY_MINUTES,
+    saltRounds: app.config.SALT_ROUNDS,
+  });
 
   app.setErrorHandler(errorHandler);
 
@@ -27,6 +53,7 @@ export async function buildApp(): Promise<FastifyInstance> {
     async (v1) => {
       v1.get("/health", async () => ({ status: "ok" }));
       v1.get("/hello", async () => ({ message: "Hello From Drafton Backend" }));
+      v1.register(authRoutes(authController), { prefix: "/auth" });
     },
     { prefix: "/api/v1" },
   );
