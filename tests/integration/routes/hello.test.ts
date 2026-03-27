@@ -16,7 +16,7 @@ describe("Hello Route", () => {
   it("Should return 200", async () => {
     const response = await app.inject({
       method: "GET",
-      url: "/hello",
+      url: "/api/v1/hello",
     });
     expect(response.statusCode).toBe(200);
   });
@@ -24,7 +24,7 @@ describe("Hello Route", () => {
   it("Should Return A Message", async () => {
     const response = await app.inject({
       method: "GET",
-      url: "/hello",
+      url: "/api/v1/hello",
     });
     expect(response.json()).toEqual({ message: "Hello from Drafton!" });
   });
