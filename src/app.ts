@@ -26,7 +26,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   app.register(
     async (v1) => {
       v1.get("/health", async () => ({ status: "ok" }));
-      v1.get("/hello", async () => ({ message: "Hello from Drafton!" }));
+      v1.get("/hello", async () => ({ message: "Hello From Drafton Backend" }));
     },
     { prefix: "/api/v1" },
   );
