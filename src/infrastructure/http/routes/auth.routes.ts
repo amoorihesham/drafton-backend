@@ -1,5 +1,4 @@
 import { FastifyInstance } from "fastify";
-import { Type } from "@sinclair/typebox";
 import { AuthController } from "../controllers/auth.controller.js";
 import { registerSchema } from "../schemas/auth.schema.js";
 

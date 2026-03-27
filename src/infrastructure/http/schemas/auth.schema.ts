@@ -12,7 +12,6 @@ export const registerSchema = {
     email: Type.String({ format: "email" }),
     username: Type.String({ minLength: 3, maxLength: 30 }),
     password: Type.String({ minLength: 8 }),
-    role: Type.Union([Type.Literal("provider"), Type.Literal("client")]),
   }),
   response: {
     201: successResponse(

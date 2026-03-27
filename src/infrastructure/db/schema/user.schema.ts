@@ -7,7 +7,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
-  role: userRoleEnum("role").notNull(),
+  role: userRoleEnum("role").notNull().default("client"),
   isActive: boolean("is_active").notNull().default(true),
   isEmailVerified: boolean("is_email_verified").notNull().default(false),
   emailVerificationOtp: text("email_verification_otp"),

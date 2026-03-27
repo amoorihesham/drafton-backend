@@ -33,11 +33,8 @@ export class AuthRepository implements IAuthRepository {
         email: dto.email,
         username: dto.username,
         passwordHash: dto.passwordHash,
-        role: dto.role,
         isActive: true,
         isEmailVerified: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       })
       .returning();
 
