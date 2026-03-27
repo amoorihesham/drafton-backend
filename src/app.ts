@@ -25,10 +25,11 @@ export async function buildApp(): Promise<FastifyInstance> {
         },
       },
   });
+  const envFile = process.env.NODE_ENV === "test" ? ".env.test" : ".env";
 
   await app.register(envPlugin, {
     schema: ConfigSchema,
-    dotenv: true,
+    dotenv: { path: envFile },
   });
 
   await app.register(helmet);

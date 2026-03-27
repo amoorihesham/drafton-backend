@@ -1,6 +1,9 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  resolve: {
+    tsconfigPaths: true,
+  },
   test: {
     globals: true,
     environment: "node",
@@ -14,6 +17,7 @@ export default defineConfig({
         "**/*.d.ts",
       ],
     },
+
     // run tests in sequence to avoid port conflicts
     pool: "forks",
   },

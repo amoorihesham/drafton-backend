@@ -26,6 +26,6 @@ describe("Hello Route", () => {
       method: "GET",
       url: "/api/v1/hello",
     });
-    expect(response.json()).toEqual({ message: "Hello from Drafton!" });
+    expect(response.json()).toEqual({ message: "Hello From Drafton Backend" });
   });
 });

@@ -10,22 +10,37 @@ import { AUTH_ERROR_CODES, AUTH_MESSAGES } from "../../../../src/core/auth/auth.
 
 // ─── Helpers ────────────────────────────────────────────────────
 
-function makeUser(overrides: Partial<UserEntity> = {}): UserEntity {
+function makeUser(
+  overrides: Partial<{
+    id: string;
+    email: string;
+    username: string;
+    passwordHash: string;
+    role: "provider" | "client";
+    isActive: boolean;
+    isEmailVerified: boolean;
+    emailVerificationOtp: string;
+    emailVerificationOtpExpiry: Date;
+    passwordResetOtp: string;
+    passwordResetOtpExpiry: Date;
+    createdAt: Date;
+    updatedAt: Date;
+  }> = {},
+): UserEntity {
   return new UserEntity(
-    "user-123",
-    "amr@example.com",
-    "amrhesham",
-    "hashed-password",
-    "provider",
-    true,
-    false,
-    null!,
-    null!,
-    null!,
-    null!,
-    new Date(),
-    new Date(),
-    ...(Object.values(overrides) as []),
+    overrides.id ?? "user-123",
+    overrides.email ?? "amr@example.com",
+    overrides.username ?? "amrhesham",
+    overrides.passwordHash ?? "hashed-password",
+    overrides.role ?? "provider",
+    overrides.isActive ?? true,
+    overrides.isEmailVerified ?? false,
+    overrides.emailVerificationOtp ?? null!,
+    overrides.emailVerificationOtpExpiry ?? null!,
+    overrides.passwordResetOtp ?? null!,
+    overrides.passwordResetOtpExpiry ?? null!,
+    overrides.createdAt ?? new Date(),
+    overrides.updatedAt ?? new Date(),
   );
 }
 
@@ -33,7 +48,6 @@ const makeRegisterDto = () => ({
   email: "amr@example.com",
   username: "amrhesham",
   password: "StrongPass123!",
-  role: "provider" as const,
 });
 
 // ─── Mocks ──────────────────────────────────────────────────────
@@ -42,6 +56,7 @@ function makeMocks() {
   const authRepository: IAuthRepository = {
     findUserByEmail: vi.fn().mockResolvedValue(null),
     findUserById: vi.fn(),
+    findUserByUsername: vi.fn().mockResolvedValue(null),
     createUser: vi.fn().mockResolvedValue(makeUser()),
     verifyEmail: vi.fn(),
     updatePassword: vi.fn(),
@@ -90,7 +105,13 @@ describe("AuthService.register", () => {
 
   it("should register a new user successfully", async () => {
     const result = await authService.register(makeRegisterDto());
-    expect(result).toEqual({ message: AUTH_MESSAGES.REGISTER_SUCCESS });
+    expect(result).toMatchObject({
+      id: "user-123",
+      email: "amr@example.com",
+      username: "amrhesham",
+      role: "provider",
+      isEmailVerified: false,
+    });
   });
 
   it("should check if email already exists", async () => {
@@ -104,6 +125,28 @@ describe("AuthService.register", () => {
     const createUserCall = vi.mocked(mocks.authRepository.createUser).mock.calls[0][0];
     expect(createUserCall.passwordHash).toBeDefined();
     expect(createUserCall.passwordHash).not.toBe("StrongPass123!");
+  });
+  it("should throw ConflictException if username already exists", async () => {
+    vi.mocked(mocks.authRepository.findUserByUsername).mockResolvedValue(makeUser());
+
+    await expect(authService.register(makeRegisterDto())).rejects.toThrow(ConflictException);
+  });
+
+  it("should throw with correct message and code when username is taken", async () => {
+    vi.mocked(mocks.authRepository.findUserByUsername).mockResolvedValue(makeUser());
+
+    await expect(authService.register(makeRegisterDto())).rejects.toMatchObject({
+      message: AUTH_MESSAGES.USERNAME_TAKEN,
+      code: AUTH_ERROR_CODES.USERNAME_TAKEN,
+      statusCode: 409,
+    });
+  });
+
+  it("should not call createUser if username already exists", async () => {
+    vi.mocked(mocks.authRepository.findUserByUsername).mockResolvedValue(makeUser());
+
+    await expect(authService.register(makeRegisterDto())).rejects.toThrow();
+    expect(mocks.authRepository.createUser).not.toHaveBeenCalled();
   });
 
   it("should generate an OTP after creating user", async () => {
