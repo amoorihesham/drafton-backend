@@ -4,6 +4,7 @@ import cors from "@fastify/cors";
 import envPlugin from "@fastify/env";
 import { ConfigSchema } from "./config/index.js";
 import { errorHandler } from "./infrastructure/http/error-handler.js";
+import { createDatabaseConnection } from "./infrastructure/db/connection.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -17,6 +18,9 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await app.register(helmet);
   await app.register(cors);
+
+  createDatabaseConnection(app.config.DATABASE_URL, app.config.DB_POOL_SIZE);
+
   app.setErrorHandler(errorHandler);
 
   app.register(
