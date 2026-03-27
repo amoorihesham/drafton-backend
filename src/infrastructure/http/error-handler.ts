@@ -1,6 +1,7 @@
 import { FastifyError, FastifyReply, FastifyRequest } from "fastify";
 import { AppError } from "../../core/shared/errors/app.errors";
 import { errorResponse } from "../../core/shared/utils/response.utils";
+import { STATUS_CODES } from "./http.constans";
 
 export function errorHandler(
   error: FastifyError | AppError | Error,
@@ -14,12 +15,12 @@ export function errorHandler(
   }
 
   // Fastify validation error (malformed request body)
-  if ("statusCode" in error && error.statusCode === 400) {
-    reply.status(400).send(errorResponse("VALIDATION_ERROR", error.message));
+  if ("statusCode" in error && error.statusCode === STATUS_CODES.BAD_REQUEST) {
+    reply.status(STATUS_CODES.BAD_REQUEST).send(errorResponse("VALIDATION_ERROR", error.message));
     return;
   }
 
   // anything else is unexpected — log it, return generic message
   request.log.error(error);
-  reply.status(500).send(errorResponse("INTERNAL_SERVER_ERROR", "Something went wrong"));
+  reply.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send(errorResponse("INTERNAL_SERVER_ERROR", "Something went wrong"));
 }

@@ -5,6 +5,7 @@ export interface IAuthRepository {
   // user operations
   findUserByEmail(email: string): Promise<UserEntity | null>;
   findUserById(id: string): Promise<UserEntity | null>;
+  findUserByUsername(username: string): Promise<UserEntity | null>;
   createUser(dto: CreateUserDto): Promise<UserEntity>;
 
   // verification

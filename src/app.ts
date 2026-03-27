@@ -12,7 +12,18 @@ import { createAuthContainer } from "./infrastructure/containers/auth.container.
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
-    logger: process.env.NODE_ENV !== "test",
+    logger: process.env.NODE_ENV !== "test" &&
+      process.env.NODE_ENV !== "production" && {
+        transport: {
+          target: "pino-pretty",
+          options: {
+            colorize: true,
+            translateTime: "HH:MM:ss",
+            ignore: "pid,hostname",
+            messageFormat: "{msg} {req.method} {req.url}",
+          },
+        },
+      },
   });
 
   await app.register(envPlugin, {

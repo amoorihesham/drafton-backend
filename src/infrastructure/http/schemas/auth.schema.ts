@@ -16,7 +16,12 @@ export const registerSchema = {
   response: {
     201: successResponse(
       Type.Object({
-        message: Type.String(),
+        id: Type.String(),
+        email: Type.String(),
+        username: Type.String(),
+        role: Type.String(),
+        isEmailVerified: Type.Boolean(),
+        createdAt: Type.String(),
       }),
     ),
   },

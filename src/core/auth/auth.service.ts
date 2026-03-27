@@ -7,6 +7,7 @@ import { ConflictException } from "../shared/errors/http.errors";
 import { IAuthConfig } from "./config/auth.config.interface";
 import { AUTH_ERROR_CODES, AUTH_MESSAGES } from "./auth.constants";
 import { UserEntity } from "./entities/user.entity";
+import { toUserResponseDto, UserResponseDto } from "./dtos/user.response.dto";
 
 export class AuthService {
   constructor(
@@ -16,13 +17,17 @@ export class AuthService {
     private readonly config: IAuthConfig,
   ) {}
 
-  async register(dto: RegisterDto): Promise<{ message: string }> {
+  async register(dto: RegisterDto): Promise<UserResponseDto> {
     // check email is not already taken
     const existingEmail = await this.authRepository.findUserByEmail(dto.email);
     if (existingEmail) {
       throw new ConflictException(AUTH_MESSAGES.EMAIL_TAKEN, AUTH_ERROR_CODES.EMAIL_TAKEN);
     }
 
+    const existingUsername = await this.authRepository.findUserByUsername(dto.username);
+    if (existingUsername) {
+      throw new ConflictException(AUTH_MESSAGES.USERNAME_TAKEN, AUTH_ERROR_CODES.USERNAME_TAKEN);
+    }
     // hash the password
     const passwordHash = await bcrypt.hash(dto.password, this.config.saltRounds);
 
@@ -42,7 +47,7 @@ export class AuthService {
     // send verification email
     await this.mailService.sendVerificationEmail(user.email, otp);
 
-    return { message: "Registration successful. Please check your email for the verification OTP." };
+    return toUserResponseDto(user);
   }
 
   // ─── Private Helpers ──────────────────────────────────────────
