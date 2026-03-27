@@ -1,11 +1,11 @@
-import { RegisterDto } from "../dtos/register.dto";
+import { CreateUserDto, RegisterDto } from "../dtos/register.dto";
 import { UserEntity } from "../entities/user.entity";
 
 export interface IAuthRepository {
   // user operations
   findUserByEmail(email: string): Promise<UserEntity | null>;
   findUserById(id: string): Promise<UserEntity | null>;
-  createUser(dto: RegisterDto): Promise<UserEntity>;
+  createUser(dto: CreateUserDto): Promise<UserEntity>;
 
   // verification
   saveEmailVerificationOtp(userId: string, otp: string, expiry: Date): Promise<void>;
