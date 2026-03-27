@@ -7,9 +7,13 @@ export const ConfigSchema = Type.Object({
   }),
   DATABASE_URL: Type.String(),
   DB_POOL_SIZE: Type.Number({ default: 10 }),
-  SALT_ROUNDS:Type.Number({default:12}),
-  OTP_EXPIRY_MINUTES:Type.Number({default:15}),
-  RESET_OTP_EXPIRY_MINUTES:Type.Number({default:30}),
+  SALT_ROUNDS: Type.Number({ default: 12 }),
+  OTP_EXPIRY_MINUTES: Type.Number({ default: 15 }),
+  RESET_OTP_EXPIRY_MINUTES: Type.Number({ default: 30 }),
+  JWT_ACCESS_SECRET: Type.String(),
+  JWT_REFRESH_SECRET: Type.String(),
+  JWT_ACCESS_TOKEN_EXPIRY: Type.String({ default: "15m" }),
+  JWT_REFRESH_TOKEN_EXPIRY: Type.String({ default: "7d" }),
 });
 
 export type Config = Static<typeof ConfigSchema>;
