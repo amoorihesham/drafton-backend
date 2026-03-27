@@ -3,7 +3,7 @@ import { IAuthRepository } from "./interfaces/auth.repository.interface";
 import { ITokenService } from "../shared/interfaces/token.service.interface";
 import { IMailService } from "../shared/interfaces/mail.service.interface";
 import { AuthTokensDto, RegisterDto } from "./dtos/register.dto";
-import { ConflictException } from "../shared/errors/http.error";
+import { ConflictException } from "../shared/errors/http.errors";
 import { IAuthConfig } from "./config/auth.config.interface";
 import { AUTH_ERROR_CODES, AUTH_MESSAGES } from "./auth.constants";
 import { UserEntity } from "./entities/user.entity";

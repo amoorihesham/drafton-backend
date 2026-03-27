@@ -1,5 +1,5 @@
 import { FastifyError, FastifyReply, FastifyRequest } from "fastify";
-import { AppError } from "../../core/shared/errors/app.error";
+import { AppError } from "../../core/shared/errors/app.errors";
 import { errorResponse } from "../../core/shared/utils/response.utils";
 
 export function errorHandler(

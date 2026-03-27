@@ -5,7 +5,7 @@ import { ITokenService } from "../../../../src/core/shared/interfaces/token.serv
 import { IMailService } from "../../../../src/core/shared/interfaces/mail.service.interface.js";
 import { IAuthConfig } from "../../../../src/core/auth/config/auth.config.interface.js";
 import { UserEntity } from "../../../../src/core/auth/entities/user.entity.js";
-import { ConflictException } from "../../../../src/core/shared/errors/http.error.js";
+import { ConflictException } from "../../../../src/core/shared/errors/http.errors.js";
 import { AUTH_ERROR_CODES, AUTH_MESSAGES } from "../../../../src/core/auth/auth.constants.js";
 
 // ─── Helpers ────────────────────────────────────────────────────
