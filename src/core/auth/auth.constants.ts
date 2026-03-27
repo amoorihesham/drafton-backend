@@ -1,0 +1,38 @@
+export const AUTH_ERROR_CODES = {
+  EMAIL_TAKEN: "EMAIL_TAKEN",
+  USERNAME_TAKEN: "USERNAME_TAKEN",
+  INVALID_CREDENTIALS: "INVALID_CREDENTIALS",
+  EMAIL_NOT_VERIFIED: "EMAIL_NOT_VERIFIED",
+  ACCOUNT_DEACTIVATED: "ACCOUNT_DEACTIVATED",
+  ALREADY_VERIFIED: "ALREADY_VERIFIED",
+  OTP_NOT_FOUND: "OTP_NOT_FOUND",
+  OTP_EXPIRED: "OTP_EXPIRED",
+  INVALID_OTP: "INVALID_OTP",
+  INVALID_REFRESH_TOKEN: "INVALID_REFRESH_TOKEN",
+  REFRESH_TOKEN_EXPIRED: "REFRESH_TOKEN_EXPIRED",
+  USER_NOT_FOUND: "USER_NOT_FOUND",
+  INVALID_REQUEST: "INVALID_REQUEST",
+} as const;
+
+export const AUTH_MESSAGES = {
+  REGISTER_SUCCESS: "Registration successful. Please check your email for the verification OTP.",
+  VERIFY_EMAIL_SUCCESS: "Email verified successfully. You can now log in.",
+  LOGIN_SUCCESS: "Logged in successfully.",
+  LOGOUT_SUCCESS: "Logged out successfully.",
+  PASSWORD_RESET_REQUEST_SUCCESS: "If that email exists you will receive a reset OTP shortly.",
+  PASSWORD_RESET_SUCCESS: "Password reset successfully. Please log in again.",
+
+  EMAIL_TAKEN: "Email already registered.",
+  USERNAME_TAKEN: "Username already taken.",
+  INVALID_CREDENTIALS: "Invalid credentials.",
+  EMAIL_NOT_VERIFIED: "Please verify your email first.",
+  ACCOUNT_DEACTIVATED: "Account is deactivated.",
+  ALREADY_VERIFIED: "Account already verified.",
+  OTP_NOT_FOUND: "No verification OTP found.",
+  OTP_EXPIRED: "OTP has expired.",
+  INVALID_OTP: "Invalid OTP.",
+  INVALID_REFRESH_TOKEN: "Invalid refresh token.",
+  REFRESH_TOKEN_EXPIRED: "Refresh token expired.",
+  USER_NOT_FOUND: "User not found.",
+  INVALID_REQUEST: "Invalid request.",
+} as const;

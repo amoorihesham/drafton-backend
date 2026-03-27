@@ -10,4 +10,5 @@ export interface ITokenService {
   verifyAccessToken(token: string): JwtPayload;
   verifyRefreshToken(token: string): JwtPayload;
   generateOpaqueToken(): string; // for verification and reset tokens
+  generateOtp(): string;
 }
