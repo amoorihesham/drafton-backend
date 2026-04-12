@@ -4,6 +4,10 @@ export interface RegisterDto {
   username: string;
   password: string;
 }
+export interface LoginDto {
+  email: string;
+  password: string;
+}
 
 // what gets passed to the repository after hashing
 export interface CreateUserDto {

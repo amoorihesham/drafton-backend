@@ -1,4 +1,4 @@
-import { CreateUserDto, RegisterDto } from "../dtos/register.dto";
+import { CreateUserDto } from "../dtos/register.dto";
 import { UserEntity } from "../entities/user.entity";
 
 export interface IAuthRepository {
@@ -14,4 +14,7 @@ export interface IAuthRepository {
   // verification
   saveEmailVerificationOtp(userId: string, otp: string, expiry: Date): Promise<void>;
   clearEmailVerificationOtp(userId: string): Promise<void>;
+
+  // refresh token
+  saveRefreshToken(userId: string, token: string): Promise<void>;
 }

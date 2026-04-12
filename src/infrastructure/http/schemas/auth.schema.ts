@@ -27,6 +27,26 @@ export const registerSchema = {
   },
 };
 
+export const loginSchema = {
+  body: Type.Object({
+    email: Type.String({ format: "email" }),
+    password: Type.String({ minLength: 8 }),
+  }),
+  response: {
+    200: successResponse(
+      Type.Object({
+        id: Type.String(),
+        email: Type.String(),
+        username: Type.String(),
+        role: Type.String(),
+        isEmailVerified: Type.Boolean(),
+        createdAt: Type.String(),
+        accessToken: Type.String(),
+      }),
+    ),
+  },
+};
+
 export const verifyEmailSchema = {
   body: Type.Object({
     email: Type.String({ format: "email" }),

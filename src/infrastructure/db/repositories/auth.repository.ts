@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { Database } from "../connection.js";
-import { users } from "../schema/index.js";
+import { refreshTokens, users } from "../schema/index.js";
 import { IAuthRepository } from "../../../core/auth/interfaces/auth.repository.interface.js";
 import { UserEntity } from "../../../core/auth/entities/user.entity.js";
 import { CreateUserDto } from "../../../core/auth/dtos/register.dto.js";
@@ -89,6 +89,14 @@ export class AuthRepository implements IAuthRepository {
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId));
+  }
+
+  async saveRefreshToken(userId: string, token: string): Promise<void> {
+    await this.db.insert(refreshTokens).values({
+      userId,
+      token,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
   }
 
   // ─── Private ────────────────────────────────────────────────

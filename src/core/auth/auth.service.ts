@@ -1,21 +1,21 @@
-import bcrypt from "bcrypt";
 import { IAuthRepository } from "./interfaces/auth.repository.interface";
-import { ITokenService } from "../shared/interfaces/token.service.interface";
+import { IJwtService } from "./interfaces/jwt.service.interface";
 import { IMailService } from "../shared/interfaces/mail.service.interface";
-import { AuthTokensDto, RegisterDto } from "./dtos/register.dto";
+import { LoginDto, RegisterDto } from "./dtos/register.dto";
 import { AuthError } from "../shared/errors/http.errors";
 import { IAuthConfig } from "./config/auth.config.interface";
 import { AUTH_ERROR_CODES, AUTH_MESSAGES } from "./auth.constants";
-import { UserEntity } from "./entities/user.entity";
 import { toUserResponseDto, UserResponseDto } from "./dtos/user.response.dto";
 import { STATUS_CODES } from "@/infrastructure/http/http.constans";
 import { IOtpService } from "../shared/interfaces/otp.service.interface";
+import { comparePassword, hashPassword } from "./utils/hashing";
 
 export class AuthService {
   constructor(
     private readonly authRepository: IAuthRepository,
     private readonly otpService: IOtpService,
     private readonly mailService: IMailService,
+    private readonly jwtService: IJwtService,
     private readonly config: IAuthConfig,
   ) {}
 
@@ -31,7 +31,7 @@ export class AuthService {
       throw new AuthError(AUTH_MESSAGES.USERNAME_TAKEN, STATUS_CODES.CONFLICT, AUTH_ERROR_CODES.USERNAME_TAKEN);
     }
     // hash the password
-    const passwordHash = await bcrypt.hash(dto.password, this.config.saltRounds);
+    const passwordHash = await hashPassword(dto.password, this.config.saltRounds);
 
     // create the user
     const user = await this.authRepository.createUser({
@@ -50,7 +50,40 @@ export class AuthService {
 
     return toUserResponseDto(user);
   }
+  async login(dto: LoginDto): Promise<UserResponseDto> {
+    const exist = await this.authRepository.findUserByEmail(dto.email);
 
+    if (!exist)
+      throw new AuthError(AUTH_MESSAGES.USER_NOT_FOUND, STATUS_CODES.NOT_FOUND, AUTH_ERROR_CODES.USER_NOT_FOUND);
+
+    const isValidPassword = await comparePassword(dto.password, exist.passwordHash);
+    if (!isValidPassword)
+      throw new AuthError(
+        AUTH_MESSAGES.INVALID_CREDENTIALS,
+        STATUS_CODES.UNAUTHORIZED,
+        AUTH_ERROR_CODES.INVALID_CREDENTIALS,
+      );
+
+    if (!exist.isEmailVerified)
+      throw new AuthError(
+        AUTH_MESSAGES.EMAIL_NOT_VERIFIED,
+        STATUS_CODES.UNAUTHORIZED,
+        AUTH_ERROR_CODES.EMAIL_NOT_VERIFIED,
+      );
+
+    const accessToken = this.jwtService.generateAccessToken({
+      user_id: exist.id,
+      role: exist.role,
+      email: exist.email,
+    });
+    const refreshToken = this.jwtService.generateRefreshToken({
+      user_id: exist.id,
+      role: exist.role,
+      email: exist.email,
+    });
+    await this.authRepository.saveRefreshToken(exist.id, refreshToken);
+    return { ...toUserResponseDto(exist), accessToken };
+  }
   async verifyEmail(email: string, otp: string): Promise<UserResponseDto> {
     const user = await this.authRepository.findUserByEmail(email);
     if (!user) {

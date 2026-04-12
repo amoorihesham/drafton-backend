@@ -3,3 +3,10 @@ export interface IAuthConfig {
   otpExpiryMinutes: number;
   resetOtpExpiryMinutes: number;
 }
+
+export interface IJwtConfig {
+  accessTokenExpiry: string;
+  refreshTokenExpiry: string;
+  jwtAccessSecret: string;
+  jwtRefreshSecret: string;
+}

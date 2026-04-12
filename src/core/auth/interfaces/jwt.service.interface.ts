@@ -1,13 +1,12 @@
 export interface JwtPayload {
-  sub: string; // userId
+  user_id: string; // userId
   email: string;
   role: string;
 }
 
-export interface ITokenService {
+export interface IJwtService {
   generateAccessToken(payload: JwtPayload): string;
   generateRefreshToken(payload: JwtPayload): string;
   verifyAccessToken(token: string): JwtPayload;
   verifyRefreshToken(token: string): JwtPayload;
-  generateOtp(): string;
 }

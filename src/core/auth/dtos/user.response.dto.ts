@@ -8,6 +8,7 @@ export interface UserResponseDto {
   isEmailVerified: boolean;
   isActive: boolean;
   createdAt: Date;
+  accessToken?: string;
 }
 
 export function toUserResponseDto(user: UserEntity): UserResponseDto {

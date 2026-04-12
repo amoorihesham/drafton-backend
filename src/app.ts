@@ -5,11 +5,12 @@ import envPlugin from "@fastify/env";
 import { ConfigSchema } from "./config/index.js";
 import { errorHandler } from "./infrastructure/http/error-handler.js";
 import { createDatabaseConnection } from "./infrastructure/db/connection.js";
-import { TokenService } from "./infrastructure/token/token.service.js";
 import { MailService } from "./infrastructure/mail/mail.service.js";
 import { authRoutes } from "./infrastructure/http/routes/auth.routes.js";
 import { createAuthContainer } from "./infrastructure/containers/auth.container.js";
 import { OtpService } from "./infrastructure/otp/otp.service.js";
+import { JwtService } from "./core/auth/jwt.service.js";
+import cookie from "@fastify/cookie";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -35,15 +36,15 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await app.register(helmet);
   await app.register(cors);
-
+  await app.register(cookie);
   const db = await createDatabaseConnection(app.config.DATABASE_URL, app.config.DB_POOL_SIZE);
 
   //GLOBAL_SERVICES
-  const tokenService = new TokenService({
-    accessExpiry: app.config.JWT_ACCESS_TOKEN_EXPIRY,
-    accessSecret: app.config.JWT_ACCESS_SECRET,
-    refreshExpiry: app.config.JWT_REFRESH_TOKEN_EXPIRY,
-    refreshSecret: app.config.JWT_REFRESH_SECRET,
+  const jwtService = new JwtService({
+    accessTokenExpiry: app.config.JWT_ACCESS_TOKEN_EXPIRY,
+    jwtAccessSecret: app.config.JWT_ACCESS_SECRET,
+    jwtRefreshSecret: app.config.JWT_REFRESH_SECRET,
+    refreshTokenExpiry: app.config.JWT_REFRESH_TOKEN_EXPIRY,
   });
   const mailService = new MailService({
     host: app.config.SMTP_HOST,
@@ -55,7 +56,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   const otpService = new OtpService();
 
   //CONTAINERS
-  const { authController } = createAuthContainer(db, mailService, otpService, {
+  const { authController } = createAuthContainer(db, mailService, otpService, jwtService, {
     otpExpiryMinutes: app.config.OTP_EXPIRY_MINUTES,
     resetOtpExpiryMinutes: app.config.RESET_OTP_EXPIRY_MINUTES,
     saltRounds: app.config.SALT_ROUNDS,
