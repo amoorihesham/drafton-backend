@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { Database } from "../connection.js";
-import { users, refreshTokens } from "../schema/index.js";
+import { users } from "../schema/index.js";
 import { IAuthRepository } from "../../../core/auth/interfaces/auth.repository.interface.js";
 import { UserEntity } from "../../../core/auth/entities/user.entity.js";
 import { CreateUserDto } from "../../../core/auth/dtos/register.dto.js";
@@ -8,25 +8,25 @@ import { CreateUserDto } from "../../../core/auth/dtos/register.dto.js";
 export class AuthRepository implements IAuthRepository {
   constructor(private readonly db: Database) {}
 
-  async findUserByEmail(email: string): Promise<UserEntity | null> {
+  async findUserByEmail(email: string) {
     const result = await this.db.select().from(users).where(eq(users.email, email)).limit(1);
 
     return result[0] ? this.toEntity(result[0]) : null;
   }
 
-  async findUserById(id: string): Promise<UserEntity | null> {
+  async findUserById(id: string) {
     const result = await this.db.select().from(users).where(eq(users.id, id)).limit(1);
 
     return result[0] ? this.toEntity(result[0]) : null;
   }
 
-  async findUserByUsername(username: string): Promise<UserEntity | null> {
+  async findUserByUsername(username: string) {
     const result = await this.db.select().from(users).where(eq(users.username, username)).limit(1);
 
     return result[0] ? this.toEntity(result[0]) : null;
   }
 
-  async createUser(dto: CreateUserDto): Promise<UserEntity> {
+  async createUser(dto: CreateUserDto) {
     const result = await this.db
       .insert(users)
       .values({
@@ -41,13 +41,18 @@ export class AuthRepository implements IAuthRepository {
     return this.toEntity(result[0]);
   }
 
-  async verifyEmail(userId: string): Promise<void> {
+  async updateUser(userId: string, dto: Partial<UserEntity>) {
+    const result = await this.db.update(users).set(dto).where(eq(users.id, userId)).returning();
+    return this.toEntity(result[0]);
+  }
+  async deleteUser(userId: string) {
+    await this.db.delete(users).where(eq(users.id, userId));
+  }
+  async verifyEmail(userId: string) {
     await this.db
       .update(users)
       .set({
         isEmailVerified: true,
-        emailVerificationOtp: null,
-        emailVerificationOtpExpiry: null,
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId));
@@ -75,44 +80,15 @@ export class AuthRepository implements IAuthRepository {
       })
       .where(eq(users.id, userId));
   }
-
-  async savePasswordResetOtp(userId: string, otp: string, expiry: Date): Promise<void> {
+  async clearEmailVerificationOtp(userId: string) {
     await this.db
       .update(users)
       .set({
-        passwordResetOtp: otp,
-        passwordResetOtpExpiry: expiry,
+        emailVerificationOtp: null,
+        emailVerificationOtpExpiry: null,
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId));
-  }
-
-  async saveRefreshToken(userId: string, token: string, expiresAt: Date): Promise<void> {
-    await this.db.insert(refreshTokens).values({
-      userId,
-      token,
-      expiresAt,
-      createdAt: new Date(),
-    });
-  }
-
-  async findRefreshToken(token: string): Promise<{ userId: string; expiresAt: Date } | null> {
-    const result = await this.db.select().from(refreshTokens).where(eq(refreshTokens.token, token)).limit(1);
-
-    if (!result[0]) return null;
-
-    return {
-      userId: result[0].userId,
-      expiresAt: result[0].expiresAt,
-    };
-  }
-
-  async deleteRefreshToken(token: string): Promise<void> {
-    await this.db.delete(refreshTokens).where(eq(refreshTokens.token, token));
-  }
-
-  async deleteAllUserRefreshTokens(userId: string): Promise<void> {
-    await this.db.delete(refreshTokens).where(eq(refreshTokens.userId, userId));
   }
 
   // ─── Private ────────────────────────────────────────────────

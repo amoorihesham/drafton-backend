@@ -3,16 +3,18 @@ import { IAuthRepository } from "./interfaces/auth.repository.interface";
 import { ITokenService } from "../shared/interfaces/token.service.interface";
 import { IMailService } from "../shared/interfaces/mail.service.interface";
 import { AuthTokensDto, RegisterDto } from "./dtos/register.dto";
-import { ConflictException } from "../shared/errors/http.errors";
+import { AuthError } from "../shared/errors/http.errors";
 import { IAuthConfig } from "./config/auth.config.interface";
 import { AUTH_ERROR_CODES, AUTH_MESSAGES } from "./auth.constants";
 import { UserEntity } from "./entities/user.entity";
 import { toUserResponseDto, UserResponseDto } from "./dtos/user.response.dto";
+import { STATUS_CODES } from "@/infrastructure/http/http.constans";
+import { IOtpService } from "../shared/interfaces/otp.service.interface";
 
 export class AuthService {
   constructor(
     private readonly authRepository: IAuthRepository,
-    private readonly tokenService: ITokenService,
+    private readonly otpService: IOtpService,
     private readonly mailService: IMailService,
     private readonly config: IAuthConfig,
   ) {}
@@ -21,12 +23,12 @@ export class AuthService {
     // check email is not already taken
     const existingEmail = await this.authRepository.findUserByEmail(dto.email);
     if (existingEmail) {
-      throw new ConflictException(AUTH_MESSAGES.EMAIL_TAKEN, AUTH_ERROR_CODES.EMAIL_TAKEN);
+      throw new AuthError(AUTH_MESSAGES.EMAIL_TAKEN, STATUS_CODES.CONFLICT, AUTH_ERROR_CODES.EMAIL_TAKEN);
     }
 
     const existingUsername = await this.authRepository.findUserByUsername(dto.username);
     if (existingUsername) {
-      throw new ConflictException(AUTH_MESSAGES.USERNAME_TAKEN, AUTH_ERROR_CODES.USERNAME_TAKEN);
+      throw new AuthError(AUTH_MESSAGES.USERNAME_TAKEN, STATUS_CODES.CONFLICT, AUTH_ERROR_CODES.USERNAME_TAKEN);
     }
     // hash the password
     const passwordHash = await bcrypt.hash(dto.password, this.config.saltRounds);
@@ -38,8 +40,7 @@ export class AuthService {
     });
 
     // generate otp and expiry
-    const otp = this.tokenService.generateOtp();
-    const expiry = this.getOtpExpiry(this.config.otpExpiryMinutes);
+    const { otp, expiry } = this.otpService.generateOtp(this.config.otpExpiryMinutes);
 
     // save otp
     await this.authRepository.saveEmailVerificationOtp(user.id, otp, expiry);
@@ -50,29 +51,29 @@ export class AuthService {
     return toUserResponseDto(user);
   }
 
-  // ─── Private Helpers ──────────────────────────────────────────
+  async verifyEmail(email: string, otp: string): Promise<UserResponseDto> {
+    const user = await this.authRepository.findUserByEmail(email);
+    if (!user) {
+      throw new AuthError(AUTH_MESSAGES.USER_NOT_FOUND, STATUS_CODES.NOT_FOUND, AUTH_ERROR_CODES.USER_NOT_FOUND);
+    }
+    if (!user.emailVerificationOtp) {
+      throw new AuthError(AUTH_MESSAGES.OTP_NOT_FOUND, STATUS_CODES.NOT_FOUND, AUTH_ERROR_CODES.OTP_NOT_FOUND);
+    }
+    const isValidOtp = this.otpService.verifyOtp({
+      userOtp: otp,
+      otp: user.emailVerificationOtp,
+      expiry: user.emailVerificationOtpExpiry,
+    });
+    if (!isValidOtp) {
+      throw new AuthError(AUTH_MESSAGES.INVALID_OTP, STATUS_CODES.UNAUTHORIZED, AUTH_ERROR_CODES.INVALID_OTP);
+    }
 
-  private async generateAndSaveTokens(user: UserEntity): Promise<AuthTokensDto> {
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    };
+    // clear the otp
+    await this.authRepository.clearEmailVerificationOtp(user.id);
 
-    const accessToken = this.tokenService.generateAccessToken(payload);
-    const refreshToken = this.tokenService.generateRefreshToken(payload);
+    // update user as verified
+    const updatedUser = await this.authRepository.updateUser(user.id, { isEmailVerified: true });
 
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
-
-    await this.authRepository.saveRefreshToken(user.id, refreshToken, expiresAt);
-
-    return { accessToken, refreshToken };
-  }
-
-  private getOtpExpiry(minutes: number): Date {
-    const expiry = new Date();
-    expiry.setMinutes(expiry.getMinutes() + minutes);
-    return expiry;
+    return toUserResponseDto(updatedUser);
   }
 }

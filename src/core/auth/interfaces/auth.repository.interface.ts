@@ -6,18 +6,12 @@ export interface IAuthRepository {
   findUserByEmail(email: string): Promise<UserEntity | null>;
   findUserById(id: string): Promise<UserEntity | null>;
   findUserByUsername(username: string): Promise<UserEntity | null>;
+
   createUser(dto: CreateUserDto): Promise<UserEntity>;
+  updateUser(userId: string, dto: Partial<UserEntity>): Promise<UserEntity>;
+  deleteUser(userId: string): Promise<void>;
 
   // verification
   saveEmailVerificationOtp(userId: string, otp: string, expiry: Date): Promise<void>;
-  verifyEmail(userId: string): Promise<void>;
-
-  // password reset
-  savePasswordResetOtp(userId: string, otp: string, expiry: Date): Promise<void>;
-  updatePassword(userId: string, passwordHash: string): Promise<void>;
-
-  // refresh token (still needs separate storage)
-  saveRefreshToken(userId: string, token: string, expiresAt: Date): Promise<void>;
-  findRefreshToken(token: string): Promise<{ userId: string; expiresAt: Date } | null>;
-  deleteRefreshToken(token: string): Promise<void>;
+  clearEmailVerificationOtp(userId: string): Promise<void>;
 }

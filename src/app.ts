@@ -9,6 +9,7 @@ import { TokenService } from "./infrastructure/token/token.service.js";
 import { MailService } from "./infrastructure/mail/mail.service.js";
 import { authRoutes } from "./infrastructure/http/routes/auth.routes.js";
 import { createAuthContainer } from "./infrastructure/containers/auth.container.js";
+import { OtpService } from "./infrastructure/otp/otp.service.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -51,9 +52,10 @@ export async function buildApp(): Promise<FastifyInstance> {
     pass: app.config.SMTP_PASS,
     from: app.config.SMTP_FROM,
   });
+  const otpService = new OtpService();
 
   //CONTAINERS
-  const { authController } = createAuthContainer(db, tokenService, mailService, {
+  const { authController } = createAuthContainer(db, mailService, otpService, {
     otpExpiryMinutes: app.config.OTP_EXPIRY_MINUTES,
     resetOtpExpiryMinutes: app.config.RESET_OTP_EXPIRY_MINUTES,
     saltRounds: app.config.SALT_ROUNDS,

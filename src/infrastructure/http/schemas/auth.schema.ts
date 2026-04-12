@@ -26,3 +26,22 @@ export const registerSchema = {
     ),
   },
 };
+
+export const verifyEmailSchema = {
+  body: Type.Object({
+    email: Type.String({ format: "email" }),
+    otp: Type.String({ minLength: 6, maxLength: 6 }),
+  }),
+  response: {
+    201: successResponse(
+      Type.Object({
+        id: Type.String(),
+        email: Type.String(),
+        username: Type.String(),
+        role: Type.String(),
+        isEmailVerified: Type.Boolean(),
+        createdAt: Type.String(),
+      }),
+    ),
+  },
+};

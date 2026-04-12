@@ -6,6 +6,7 @@ export interface UserResponseDto {
   username: string;
   role: string;
   isEmailVerified: boolean;
+  isActive: boolean;
   createdAt: Date;
 }
 
@@ -16,6 +17,7 @@ export function toUserResponseDto(user: UserEntity): UserResponseDto {
     username: user.username,
     role: user.role,
     isEmailVerified: user.isEmailVerified,
+    isActive: user.isActive,
     createdAt: user.createdAt,
   };
 }

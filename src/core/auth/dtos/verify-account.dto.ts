@@ -1,3 +1,4 @@
 export interface VerifyAccountDto {
-  token: string;
+  email: string;
+  otp: string;
 }
