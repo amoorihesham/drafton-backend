@@ -1,9 +1,9 @@
-import { IJwtConfig } from "./config/auth.config.interface";
-import { IJwtService, JwtPayload } from "./interfaces/jwt.service.interface";
+import { IAuthConfig } from "@/core/auth/config/auth.config.interface";
+import { IJwtService, JwtPayload } from "@/core/auth/interfaces/services/jwt.service.interface";
 import jwt from "jsonwebtoken";
 
 export class JwtService implements IJwtService {
-  constructor(private readonly config: IJwtConfig) {}
+  constructor(private readonly config: IAuthConfig["jwt"]) {}
   generateAccessToken(payload: JwtPayload) {
     return jwt.sign(payload, this.config.jwtAccessSecret, { expiresIn: "15m" });
   }

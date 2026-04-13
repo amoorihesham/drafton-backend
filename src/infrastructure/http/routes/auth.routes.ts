@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import { AuthController } from "../controllers/auth.controller.js";
 import {
   loginSchema,
+  logoutSchema,
   refreshSchema,
   registerSchema,
   verifyEmailSchema,
@@ -23,6 +24,11 @@ export function authRoutes(authController: AuthController) {
       "/refresh",
       { schema: refreshSchema },
       authController.refresh.bind(authController),
+    );
+    fastify.post(
+      "/logout",
+      { schema: logoutSchema },
+      authController.logout.bind(authController),
     );
     fastify.post(
       "/verify-email",

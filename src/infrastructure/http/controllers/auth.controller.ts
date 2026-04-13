@@ -2,7 +2,7 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import { AuthService } from "../../../core/auth/auth.service.js";
 import { RegisterDto } from "../../../core/auth/dtos/register.dto.js";
 import { successResponse } from "../../../core/shared/utils/response.utils.js";
-import { AUTH_MESSAGES } from "../../../core/auth/auth.constants.js";
+import { AUTH_MESSAGES } from "../../../core/auth/constants/messages.js";
 import { STATUS_CODES } from "../http.constans.js";
 import { VerifyAccountDto } from "@/core/auth/dtos/verify-account.dto.js";
 import { LoginDto } from "@/core/auth/dtos/login.dto.js";
@@ -13,10 +13,9 @@ export class AuthController {
   async register(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const dto = request.body as RegisterDto;
     const result = await this.authService.register(dto);
-    reply
-      .status(STATUS_CODES.CREATED)
-      .send(successResponse(result, AUTH_MESSAGES.REGISTER_SUCCESS));
+    reply.status(STATUS_CODES.CREATED).send(successResponse(result, AUTH_MESSAGES.REGISTER_SUCCESS));
   }
+
   async login(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const dto = request.body as LoginDto;
     const result = await this.authService.login(dto);
@@ -32,10 +31,10 @@ export class AuthController {
       sameSite: "strict",
       maxAge: 60 * 60 * 24 * 7,
     });
-    reply
-      .status(STATUS_CODES.OK)
-      .send(successResponse(result, AUTH_MESSAGES.LOGIN_SUCCESS));
+    reply.status(STATUS_CODES.OK).send(successResponse(result, AUTH_MESSAGES.LOGIN_SUCCESS));
   }
+
+  async logout(request: FastifyRequest, reply: FastifyReply): Promise<void> {}
 
   async refresh(request: FastifyRequest, reply: FastifyReply) {
     const { refresh_token } = request.cookies;
@@ -60,22 +59,12 @@ export class AuthController {
     });
     reply
       .status(STATUS_CODES.OK)
-      .send(
-        successResponse(
-          { accessToken: result.accessToken },
-          AUTH_MESSAGES.LOGIN_SUCCESS,
-        ),
-      );
+      .send(successResponse({ accessToken: result.accessToken }, AUTH_MESSAGES.LOGIN_SUCCESS));
   }
 
-  async verifyEmail(
-    request: FastifyRequest,
-    reply: FastifyReply,
-  ): Promise<void> {
+  async verifyEmail(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const dto = request.body as VerifyAccountDto;
     const result = await this.authService.verifyEmail(dto.email, dto.otp);
-    reply
-      .status(STATUS_CODES.OK)
-      .send(successResponse(result, AUTH_MESSAGES.VERIFY_EMAIL_SUCCESS));
+    reply.status(STATUS_CODES.OK).send(successResponse(result, AUTH_MESSAGES.VERIFY_EMAIL_SUCCESS));
   }
 }

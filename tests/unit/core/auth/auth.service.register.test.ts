@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AuthService } from "../../../../src/core/auth/auth.service.js";
 import { IAuthRepository } from "../../../../src/core/auth/interfaces/auth.repository.interface.js";
-import { IJwtService } from "../../../../src/core/auth/interfaces/jwt.service.interface.js";
+import { IJwtService } from "../../../../src/core/auth/interfaces/services/jwt.service.interface.js";
 import { IMailService } from "../../../../src/core/shared/interfaces/mail.service.interface.js";
 import { IAuthConfig } from "../../../../src/core/auth/config/auth.config.interface.js";
 import { UserEntity } from "../../../../src/core/auth/entities/user.entity.js";
 import { AuthError } from "../../../../src/core/shared/errors/http.errors.js";
-import { AUTH_ERROR_CODES, AUTH_MESSAGES } from "../../../../src/core/auth/auth.constants.js";
+import { AUTH_ERROR_CODES, AUTH_MESSAGES } from "../../../../src/core/auth/constants/messages.js";
 import { IOtpService } from "@/core/shared/interfaces/otp.service.interface.js";
 
 // ─── Helpers ────────────────────────────────────────────────────

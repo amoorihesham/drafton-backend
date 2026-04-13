@@ -1,39 +1,27 @@
 import { eq } from "drizzle-orm";
 import { Database } from "../connection.js";
 import { users } from "../schema/index.js";
-import { IAuthRepository } from "../../../core/auth/interfaces/auth.repository.interface.js";
-import { UserEntity } from "../../../core/auth/entities/user.entity.js";
-import { CreateUserDto } from "../../../core/auth/dtos/register.dto.js";
+import { IAuthRepository } from "@/core/auth/interfaces/repos/auth.repository.interface.js";
+import { UserEntity } from "@/core/auth/entities/user.entity.js";
+import { CreateUserDto } from "@/core/auth/dtos/register.dto.js";
 
 export class AuthRepository implements IAuthRepository {
   constructor(private readonly db: Database) {}
 
   async findUserByEmail(email: string) {
-    const result = await this.db
-      .select()
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1);
+    const result = await this.db.select().from(users).where(eq(users.email, email)).limit(1);
 
     return result[0] ? this.toEntity(result[0]) : null;
   }
 
   async findUserById(id: string) {
-    const result = await this.db
-      .select()
-      .from(users)
-      .where(eq(users.id, id))
-      .limit(1);
+    const result = await this.db.select().from(users).where(eq(users.id, id)).limit(1);
 
     return result[0] ? this.toEntity(result[0]) : null;
   }
 
   async findUserByUsername(username: string) {
-    const result = await this.db
-      .select()
-      .from(users)
-      .where(eq(users.username, username))
-      .limit(1);
+    const result = await this.db.select().from(users).where(eq(users.username, username)).limit(1);
 
     return result[0] ? this.toEntity(result[0]) : null;
   }
@@ -54,11 +42,7 @@ export class AuthRepository implements IAuthRepository {
   }
 
   async updateUser(userId: string, dto: Partial<UserEntity>) {
-    const result = await this.db
-      .update(users)
-      .set(dto)
-      .where(eq(users.id, userId))
-      .returning();
+    const result = await this.db.update(users).set(dto).where(eq(users.id, userId)).returning();
     return this.toEntity(result[0]);
   }
   async deleteUser(userId: string) {
@@ -86,11 +70,7 @@ export class AuthRepository implements IAuthRepository {
       .where(eq(users.id, userId));
   }
 
-  async saveEmailVerificationOtp(
-    userId: string,
-    otp: string,
-    expiry: Date,
-  ): Promise<void> {
+  async saveEmailVerificationOtp(userId: string, otp: string, expiry: Date): Promise<void> {
     await this.db
       .update(users)
       .set({

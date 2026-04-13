@@ -12,6 +12,7 @@ export const registerSchema = {
     email: Type.String({ format: "email" }),
     username: Type.String({ minLength: 3, maxLength: 30 }),
     password: Type.String({ minLength: 8 }),
+    deviceId: Type.String(),
   }),
   response: {
     201: successResponse(
@@ -45,6 +46,18 @@ export const loginSchema = {
         accessToken: Type.String(),
       }),
     ),
+  },
+};
+
+export const logoutSchema = {
+  cookies: Type.Object({
+    refresh_token: Type.String(),
+  }),
+  body: Type.Object({
+    deviceId: Type.String(),
+  }),
+  response: {
+    200: successResponse(Type.Object({})),
   },
 };
 

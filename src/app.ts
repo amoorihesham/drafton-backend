@@ -8,10 +8,8 @@ import { createDatabaseConnection } from "./infrastructure/db/connection.js";
 import { MailService } from "./infrastructure/mail/mail.service.js";
 import { authRoutes } from "./infrastructure/http/routes/auth.routes.js";
 import { createAuthContainer } from "./infrastructure/containers/auth.container.js";
-import { OtpService } from "./infrastructure/otp/otp.service.js";
-import { JwtService } from "./core/auth/jwt.service.js";
 import cookie from "@fastify/cookie";
-import { Redis } from "@upstash/redis";
+import { createRedisConnection } from "./infrastructure/redis/index.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -39,19 +37,9 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(cors);
   await app.register(cookie);
 
-  const db = await createDatabaseConnection(
-    app.config.DATABASE_URL,
-    app.config.DB_POOL_SIZE,
-  );
-  const redis = Redis.fromEnv();
+  const db = await createDatabaseConnection(app.config.DATABASE_URL, app.config.DB_POOL_SIZE);
+  const redis = createRedisConnection();
 
-  //GLOBAL_SERVICES
-  const jwtService = new JwtService({
-    accessTokenExpiry: app.config.JWT_ACCESS_TOKEN_EXPIRY,
-    jwtAccessSecret: app.config.JWT_ACCESS_SECRET,
-    jwtRefreshSecret: app.config.JWT_REFRESH_SECRET,
-    refreshTokenExpiry: app.config.JWT_REFRESH_TOKEN_EXPIRY,
-  });
   const mailService = new MailService({
     host: app.config.SMTP_HOST,
     port: app.config.SMTP_PORT,
@@ -59,21 +47,21 @@ export async function buildApp(): Promise<FastifyInstance> {
     pass: app.config.SMTP_PASS,
     from: app.config.SMTP_FROM,
   });
-  const otpService = new OtpService();
 
   //CONTAINERS
-  const { authController } = createAuthContainer(
-    db,
-    redis,
-    mailService,
-    otpService,
-    jwtService,
-    {
-      otpExpiryMinutes: app.config.OTP_EXPIRY_MINUTES,
-      resetOtpExpiryMinutes: app.config.RESET_OTP_EXPIRY_MINUTES,
-      saltRounds: app.config.SALT_ROUNDS,
+  const { authController } = createAuthContainer(db, redis, mailService, {
+    hash: { saltRounds: app.config.SALT_ROUNDS },
+    jwt: {
+      accessTokenExpiry: app.config.JWT_ACCESS_TOKEN_EXPIRY,
+      jwtAccessSecret: app.config.JWT_ACCESS_SECRET,
+      jwtRefreshSecret: app.config.JWT_REFRESH_SECRET,
+      refreshTokenExpiry: app.config.JWT_REFRESH_TOKEN_EXPIRY,
     },
-  );
+    otp: {
+      reset_otp_expiry_time: app.config.RESET_OTP_EXPIRY_MINUTES,
+      verification_otp_expiry_time: app.config.OTP_EXPIRY_MINUTES,
+    },
+  });
 
   app.setErrorHandler(errorHandler);
 

@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { describe, it, beforeAll, afterAll, expect, afterEach } from "vitest";
 import { buildApp } from "@/app";
-import { AUTH_ERROR_CODES, AUTH_MESSAGES } from "@/core/auth/auth.constants";
+import { AUTH_ERROR_CODES, AUTH_MESSAGES } from "@/core/auth/constants/messages";
 import { getDatabase } from "@/infrastructure/db/connection";
 import { users } from "@/infrastructure/db/schema";
 

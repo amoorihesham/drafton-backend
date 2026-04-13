@@ -1,7 +1,8 @@
 import crypto from "node:crypto";
 import { Redis } from "@upstash/redis";
+import { IRefreshTokenStore } from "@/core/auth/interfaces/services/refresh-token-store.interface";
 
-export class RefreshTokenStore {
+export class RefreshTokenStore implements IRefreshTokenStore {
   constructor(private redis: Redis) {}
 
   private hash(token: string) {
@@ -27,14 +28,11 @@ export class RefreshTokenStore {
 
     const data: { refreshHash: string } | null = await this.redis.get(key);
 
-    if (!data) return null;
-    console.log(data.refreshHash, hash);
+    if (!data) return false;
 
-    if (data?.refreshHash !== hash) {
-      return null;
-    }
+    if (data?.refreshHash !== hash) return false;
 
-    return { valid: true };
+    return true;
   }
 
   async revoke(userId: string, deviceId: string) {
