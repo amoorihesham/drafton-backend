@@ -11,6 +11,7 @@ import { createAuthContainer } from "./infrastructure/containers/auth.container.
 import { OtpService } from "./infrastructure/otp/otp.service.js";
 import { JwtService } from "./core/auth/jwt.service.js";
 import cookie from "@fastify/cookie";
+import { Redis } from "@upstash/redis";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -37,7 +38,12 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(helmet);
   await app.register(cors);
   await app.register(cookie);
-  const db = await createDatabaseConnection(app.config.DATABASE_URL, app.config.DB_POOL_SIZE);
+
+  const db = await createDatabaseConnection(
+    app.config.DATABASE_URL,
+    app.config.DB_POOL_SIZE,
+  );
+  const redis = Redis.fromEnv();
 
   //GLOBAL_SERVICES
   const jwtService = new JwtService({
@@ -56,11 +62,18 @@ export async function buildApp(): Promise<FastifyInstance> {
   const otpService = new OtpService();
 
   //CONTAINERS
-  const { authController } = createAuthContainer(db, mailService, otpService, jwtService, {
-    otpExpiryMinutes: app.config.OTP_EXPIRY_MINUTES,
-    resetOtpExpiryMinutes: app.config.RESET_OTP_EXPIRY_MINUTES,
-    saltRounds: app.config.SALT_ROUNDS,
-  });
+  const { authController } = createAuthContainer(
+    db,
+    redis,
+    mailService,
+    otpService,
+    jwtService,
+    {
+      otpExpiryMinutes: app.config.OTP_EXPIRY_MINUTES,
+      resetOtpExpiryMinutes: app.config.RESET_OTP_EXPIRY_MINUTES,
+      saltRounds: app.config.SALT_ROUNDS,
+    },
+  );
 
   app.setErrorHandler(errorHandler);
 

@@ -9,6 +9,7 @@ export interface UserResponseDto {
   isActive: boolean;
   createdAt: Date;
   accessToken?: string;
+  refreshToken?: string;
 }
 
 export function toUserResponseDto(user: UserEntity): UserResponseDto {

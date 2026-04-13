@@ -13,7 +13,9 @@ export class AuthController {
   async register(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const dto = request.body as RegisterDto;
     const result = await this.authService.register(dto);
-    reply.status(STATUS_CODES.CREATED).send(successResponse(result, AUTH_MESSAGES.REGISTER_SUCCESS));
+    reply
+      .status(STATUS_CODES.CREATED)
+      .send(successResponse(result, AUTH_MESSAGES.REGISTER_SUCCESS));
   }
   async login(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const dto = request.body as LoginDto;
@@ -24,12 +26,25 @@ export class AuthController {
       sameSite: "strict",
       maxAge: 60 * 60 * 24 * 7,
     });
-    reply.status(STATUS_CODES.OK).send(successResponse(result, AUTH_MESSAGES.LOGIN_SUCCESS));
+    reply.setCookie("refresh_token", result.refreshToken!, {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      sameSite: "strict",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+    reply
+      .status(STATUS_CODES.OK)
+      .send(successResponse(result, AUTH_MESSAGES.LOGIN_SUCCESS));
   }
 
-  async verifyEmail(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+  async verifyEmail(
+    request: FastifyRequest,
+    reply: FastifyReply,
+  ): Promise<void> {
     const dto = request.body as VerifyAccountDto;
     const result = await this.authService.verifyEmail(dto.email, dto.otp);
-    reply.status(STATUS_CODES.OK).send(successResponse(result, AUTH_MESSAGES.VERIFY_EMAIL_SUCCESS));
+    reply
+      .status(STATUS_CODES.OK)
+      .send(successResponse(result, AUTH_MESSAGES.VERIFY_EMAIL_SUCCESS));
   }
 }

@@ -6,7 +6,7 @@ export interface IAuthConfig {
 
 export interface IJwtConfig {
   accessTokenExpiry: string;
-  refreshTokenExpiry: string;
+  refreshTokenExpiry: number;
   jwtAccessSecret: string;
   jwtRefreshSecret: string;
 }

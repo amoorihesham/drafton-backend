@@ -8,7 +8,9 @@ export class JwtService implements IJwtService {
     return jwt.sign(payload, this.config.jwtAccessSecret, { expiresIn: "15m" });
   }
   generateRefreshToken(payload: JwtPayload): string {
-    return jwt.sign(payload, this.config.jwtRefreshSecret, { expiresIn: "7d" });
+    return jwt.sign(payload, this.config.jwtRefreshSecret, {
+      expiresIn: this.config.refreshTokenExpiry,
+    });
   }
   verifyAccessToken(token: string): JwtPayload {
     return jwt.verify(token, this.config.jwtAccessSecret) as JwtPayload;

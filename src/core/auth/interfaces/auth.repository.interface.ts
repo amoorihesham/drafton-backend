@@ -12,9 +12,10 @@ export interface IAuthRepository {
   deleteUser(userId: string): Promise<void>;
 
   // verification
-  saveEmailVerificationOtp(userId: string, otp: string, expiry: Date): Promise<void>;
+  saveEmailVerificationOtp(
+    userId: string,
+    otp: string,
+    expiry: Date,
+  ): Promise<void>;
   clearEmailVerificationOtp(userId: string): Promise<void>;
-
-  // refresh token
-  saveRefreshToken(userId: string, token: string): Promise<void>;
 }
