@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AuthService } from "../../../../src/core/auth/auth.service.js";
 import { IAuthRepository } from "../../../../src/core/auth/interfaces/auth.repository.interface.js";
-import { ITokenService } from "../../../../src/core/auth/interfaces/jwt.service.interface.js";
+import { IJwtService } from "../../../../src/core/auth/interfaces/jwt.service.interface.js";
 import { IMailService } from "../../../../src/core/shared/interfaces/mail.service.interface.js";
 import { IAuthConfig } from "../../../../src/core/auth/config/auth.config.interface.js";
 import { UserEntity } from "../../../../src/core/auth/entities/user.entity.js";
-import { ConflictException } from "../../../../src/core/shared/errors/http.errors.js";
+import { AuthError } from "../../../../src/core/shared/errors/http.errors.js";
 import { AUTH_ERROR_CODES, AUTH_MESSAGES } from "../../../../src/core/auth/auth.constants.js";
+import { IOtpService } from "@/core/shared/interfaces/otp.service.interface.js";
 
 // ─── Helpers ────────────────────────────────────────────────────
 
@@ -58,21 +59,23 @@ function makeMocks() {
     findUserById: vi.fn(),
     findUserByUsername: vi.fn().mockResolvedValue(null),
     createUser: vi.fn().mockResolvedValue(makeUser()),
-    verifyEmail: vi.fn(),
-    updatePassword: vi.fn(),
     saveEmailVerificationOtp: vi.fn().mockResolvedValue(undefined),
-    savePasswordResetOtp: vi.fn(),
+    deleteUser: vi.fn(),
+    updateUser: vi.fn(),
+    clearEmailVerificationOtp: vi.fn(),
     saveRefreshToken: vi.fn(),
-    findRefreshToken: vi.fn(),
-    deleteRefreshToken: vi.fn(),
   };
 
-  const tokenService: ITokenService = {
+  const jwtService: IJwtService = {
     generateAccessToken: vi.fn().mockReturnValue("access-token"),
     generateRefreshToken: vi.fn().mockReturnValue("refresh-token"),
     verifyAccessToken: vi.fn(),
     verifyRefreshToken: vi.fn(),
-    generateOtp: vi.fn().mockReturnValue("123456"),
+  };
+
+  const otpService: IOtpService = {
+    generateOtp: vi.fn().mockReturnValue({ otp: "123456", expiry: new Date(Date.now() + 3600000) }),
+    verifyOtp: vi.fn(),
   };
 
   const mailService: IMailService = {
@@ -86,7 +89,7 @@ function makeMocks() {
     resetOtpExpiryMinutes: 60,
   };
 
-  return { authRepository, tokenService, mailService, config };
+  return { authRepository, jwtService, mailService, otpService, config };
 }
 
 // ─── Tests ──────────────────────────────────────────────────────
@@ -98,7 +101,13 @@ describe("AuthService.register", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks = makeMocks();
-    authService = new AuthService(mocks.authRepository, mocks.tokenService, mocks.mailService, mocks.config);
+    authService = new AuthService(
+      mocks.authRepository,
+      mocks.otpService,
+      mocks.mailService,
+      mocks.jwtService,
+      mocks.config,
+    );
   });
 
   // ─── Happy Path ───────────────────────────────────────────────
@@ -129,7 +138,7 @@ describe("AuthService.register", () => {
   it("should throw ConflictException if username already exists", async () => {
     vi.mocked(mocks.authRepository.findUserByUsername).mockResolvedValue(makeUser());
 
-    await expect(authService.register(makeRegisterDto())).rejects.toThrow(ConflictException);
+    await expect(authService.register(makeRegisterDto())).rejects.toThrow(AuthError);
   });
 
   it("should throw with correct message and code when username is taken", async () => {
@@ -151,7 +160,7 @@ describe("AuthService.register", () => {
 
   it("should generate an OTP after creating user", async () => {
     await authService.register(makeRegisterDto());
-    expect(mocks.tokenService.generateOtp).toHaveBeenCalledOnce();
+    expect(mocks.otpService.generateOtp).toHaveBeenCalledOnce();
   });
 
   it("should save the OTP with correct userId", async () => {
@@ -181,7 +190,7 @@ describe("AuthService.register", () => {
   it("should throw ConflictException if email already exists", async () => {
     vi.mocked(mocks.authRepository.findUserByEmail).mockResolvedValue(makeUser());
 
-    await expect(authService.register(makeRegisterDto())).rejects.toThrow(ConflictException);
+    await expect(authService.register(makeRegisterDto())).rejects.toThrow(AuthError);
   });
 
   it("should throw with correct message and code when email is taken", async () => {
@@ -242,5 +251,148 @@ describe("AuthService.register", () => {
     await authService.register(makeRegisterDto());
 
     expect(callOrder.indexOf("saveOtp")).toBeLessThan(callOrder.indexOf("sendEmail"));
+  });
+});
+
+describe("AuthService.verifyEmail", () => {
+  let authService: AuthService;
+  let mocks: ReturnType<typeof makeMocks>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks = makeMocks();
+    authService = new AuthService(
+      mocks.authRepository,
+      mocks.otpService,
+      mocks.mailService,
+      mocks.jwtService,
+      mocks.config,
+    );
+  });
+
+  const validEmail = "amr@example.com";
+  const validOtp = "123456";
+
+  // ─── Happy Path ───────────────────────────────────────────────
+
+  it("should verify email successfully", async () => {
+    const user = makeUser({ emailVerificationOtp: "123456", emailVerificationOtpExpiry: new Date() });
+    const updatedUser = makeUser({ isEmailVerified: true });
+
+    vi.mocked(mocks.authRepository.findUserByEmail).mockResolvedValue(user);
+    vi.mocked(mocks.otpService.verifyOtp).mockReturnValue(true);
+    vi.mocked(mocks.authRepository.updateUser).mockResolvedValue(updatedUser);
+
+    const result = await authService.verifyEmail(validEmail, validOtp);
+
+    expect(result).toMatchObject({
+      id: "user-123",
+      email: "amr@example.com",
+      username: "amrhesham",
+      role: "provider",
+      isEmailVerified: true,
+    });
+  });
+
+  it("should check if user exists by email", async () => {
+    const user = makeUser({ emailVerificationOtp: "123456", emailVerificationOtpExpiry: new Date() });
+    const updatedUser = makeUser({ isEmailVerified: true });
+
+    vi.mocked(mocks.authRepository.findUserByEmail).mockResolvedValue(user);
+    vi.mocked(mocks.otpService.verifyOtp).mockReturnValue(true);
+    vi.mocked(mocks.authRepository.updateUser).mockResolvedValue(updatedUser);
+
+    await authService.verifyEmail(validEmail, validOtp);
+    expect(mocks.authRepository.findUserByEmail).toHaveBeenCalledWith(validEmail);
+  });
+
+  it("should call verifyOtp with correct params", async () => {
+    const expiry = new Date();
+    const user = makeUser({ emailVerificationOtp: "valid-otp", emailVerificationOtpExpiry: expiry });
+    const updatedUser = makeUser({ isEmailVerified: true });
+
+    vi.mocked(mocks.authRepository.findUserByEmail).mockResolvedValue(user);
+    vi.mocked(mocks.otpService.verifyOtp).mockReturnValue(true);
+    vi.mocked(mocks.authRepository.updateUser).mockResolvedValue(updatedUser);
+
+    await authService.verifyEmail(validEmail, "user-input-otp");
+
+    expect(mocks.otpService.verifyOtp).toHaveBeenCalledWith({
+      userOtp: "user-input-otp",
+      otp: "valid-otp",
+      expiry: expiry,
+    });
+  });
+
+  it("should clear OTP before updating user", async () => {
+    const user = makeUser({ emailVerificationOtp: "123456", emailVerificationOtpExpiry: new Date() });
+    const updatedUser = makeUser({ isEmailVerified: true });
+
+    vi.mocked(mocks.authRepository.findUserByEmail).mockResolvedValue(user);
+    vi.mocked(mocks.otpService.verifyOtp).mockReturnValue(true);
+    vi.mocked(mocks.authRepository.updateUser).mockResolvedValue(updatedUser);
+
+    const callOrder: string[] = [];
+
+    vi.mocked(mocks.authRepository.clearEmailVerificationOtp).mockImplementation(async () => {
+      callOrder.push("clearOtp");
+    });
+    vi.mocked(mocks.authRepository.updateUser).mockImplementation(async () => {
+      callOrder.push("updateUser");
+      return updatedUser;
+    });
+
+    await authService.verifyEmail(validEmail, validOtp);
+
+    expect(mocks.authRepository.clearEmailVerificationOtp).toHaveBeenCalledWith(user.id);
+    expect(callOrder.indexOf("clearOtp")).toBeLessThan(callOrder.indexOf("updateUser"));
+  });
+
+  it("should update user as verified", async () => {
+    const user = makeUser({ emailVerificationOtp: "123456", emailVerificationOtpExpiry: new Date() });
+    const updatedUser = makeUser({ isEmailVerified: true });
+
+    vi.mocked(mocks.authRepository.findUserByEmail).mockResolvedValue(user);
+    vi.mocked(mocks.otpService.verifyOtp).mockReturnValue(true);
+    vi.mocked(mocks.authRepository.updateUser).mockResolvedValue(updatedUser);
+
+    await authService.verifyEmail(validEmail, validOtp);
+
+    expect(mocks.authRepository.updateUser).toHaveBeenCalledWith(user.id, { isEmailVerified: true });
+  });
+
+  // ─── Errors ───────────────────────────────────────────────────
+
+  it("should throw error if user not found", async () => {
+    vi.mocked(mocks.authRepository.findUserByEmail).mockResolvedValue(null);
+
+    await expect(authService.verifyEmail(validEmail, validOtp)).rejects.toMatchObject({
+      message: AUTH_MESSAGES.USER_NOT_FOUND,
+      code: AUTH_ERROR_CODES.USER_NOT_FOUND,
+      statusCode: 404,
+    });
+  });
+
+  it("should throw error if user has no OTP", async () => {
+    const user = makeUser({ emailVerificationOtp: null as any });
+    vi.mocked(mocks.authRepository.findUserByEmail).mockResolvedValue(user);
+
+    await expect(authService.verifyEmail(validEmail, validOtp)).rejects.toMatchObject({
+      message: AUTH_MESSAGES.OTP_NOT_FOUND,
+      code: AUTH_ERROR_CODES.OTP_NOT_FOUND,
+      statusCode: 404,
+    });
+  });
+
+  it("should throw error if OTP is invalid", async () => {
+    const user = makeUser({ emailVerificationOtp: "123456", emailVerificationOtpExpiry: new Date() });
+    vi.mocked(mocks.authRepository.findUserByEmail).mockResolvedValue(user);
+    vi.mocked(mocks.otpService.verifyOtp).mockReturnValue(false);
+
+    await expect(authService.verifyEmail(validEmail, validOtp)).rejects.toMatchObject({
+      message: AUTH_MESSAGES.INVALID_OTP,
+      code: AUTH_ERROR_CODES.INVALID_OTP,
+      statusCode: 401,
+    });
   });
 });
