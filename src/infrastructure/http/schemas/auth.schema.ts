@@ -31,6 +31,7 @@ export const loginSchema = {
   body: Type.Object({
     email: Type.String({ format: "email" }),
     password: Type.String({ minLength: 8 }),
+    deviceId: Type.String(),
   }),
   response: {
     200: successResponse(
@@ -41,6 +42,22 @@ export const loginSchema = {
         role: Type.String(),
         isEmailVerified: Type.Boolean(),
         createdAt: Type.String(),
+        accessToken: Type.String(),
+      }),
+    ),
+  },
+};
+
+export const refreshSchema = {
+  cookies: Type.Object({
+    refresh_token: Type.String(),
+  }),
+  body: Type.Object({
+    deviceId: Type.String(),
+  }),
+  response: {
+    200: successResponse(
+      Type.Object({
         accessToken: Type.String(),
       }),
     ),

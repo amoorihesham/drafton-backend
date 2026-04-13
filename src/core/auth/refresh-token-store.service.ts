@@ -8,51 +8,47 @@ export class RefreshTokenStore {
     return crypto.createHash("sha256").update(token).digest("hex");
   }
 
-  async save(token: string, userId: string, ttl: number) {
-    const hash = this.hash(token);
-    const key = `refresh:${hash}`;
-    const userKey = `user_sessions:${userId}`;
-
-    const pipeline = this.redis.multi();
-
-    pipeline.set(key, userId, { ex: ttl });
-    pipeline.sadd(userKey, hash);
-    pipeline.expire(userKey, ttl);
-
-    await pipeline.exec();
+  private sessionKey(userId: string, deviceId: string) {
+    return `session:${userId}:${deviceId}`;
   }
 
-  async verify(token: string) {
+  async save(token: string, userId: string, deviceId: string, ttl: number) {
     const hash = this.hash(token);
-    return this.redis.get(`refresh:${hash}`);
+    const key = this.sessionKey(userId, deviceId);
+
+    await this.redis.set(key, JSON.stringify({ refreshHash: hash }), {
+      ex: ttl,
+    });
   }
 
-  async revoke(token: string) {
+  async verify(token: string, userId: string, deviceId: string) {
     const hash = this.hash(token);
-    const key = `refresh:${hash}`;
+    const key = this.sessionKey(userId, deviceId);
 
-    const userId = await this.redis.get(key);
-    if (!userId) return;
+    const data: { refreshHash: string } | null = await this.redis.get(key);
 
-    const pipeline = this.redis.multi();
-    pipeline.del(key);
-    pipeline.srem(`user_sessions:${userId}`, hash);
+    if (!data) return null;
+    console.log(data.refreshHash, hash);
 
-    await pipeline.exec();
+    if (data?.refreshHash !== hash) {
+      return null;
+    }
+
+    return { valid: true };
+  }
+
+  async revoke(userId: string, deviceId: string) {
+    const key = this.sessionKey(userId, deviceId);
+    await this.redis.del(key);
   }
 
   async revokeAll(userId: string) {
-    const userKey = `user_sessions:${userId}`;
-    const tokens = await this.redis.smembers(userKey);
+    const pattern = `session:${userId}:*`;
 
-    const pipeline = this.redis.multi();
+    const keys = await this.redis.keys(pattern);
 
-    for (const hash of tokens) {
-      pipeline.del(`refresh:${hash}`);
+    if (keys.length) {
+      await this.redis.del(...keys);
     }
-
-    pipeline.del(userKey);
-
-    await pipeline.exec();
   }
 }

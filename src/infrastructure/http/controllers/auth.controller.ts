@@ -37,6 +37,37 @@ export class AuthController {
       .send(successResponse(result, AUTH_MESSAGES.LOGIN_SUCCESS));
   }
 
+  async refresh(request: FastifyRequest, reply: FastifyReply) {
+    const { refresh_token } = request.cookies;
+    const { deviceId } = request.body as { deviceId: string };
+
+    const result = await this.authService.refreshToken({
+      deviceId,
+      token: refresh_token!,
+    });
+
+    reply.setCookie("access_token", result.accessToken!, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+    reply.setCookie("refresh_token", result.refreshToken!, {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      sameSite: "strict",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+    reply
+      .status(STATUS_CODES.OK)
+      .send(
+        successResponse(
+          { accessToken: result.accessToken },
+          AUTH_MESSAGES.LOGIN_SUCCESS,
+        ),
+      );
+  }
+
   async verifyEmail(
     request: FastifyRequest,
     reply: FastifyReply,

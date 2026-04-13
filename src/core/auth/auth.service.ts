@@ -1,7 +1,7 @@
 import { IAuthRepository } from "./interfaces/auth.repository.interface";
 import { IJwtService } from "./interfaces/jwt.service.interface";
 import { IMailService } from "../shared/interfaces/mail.service.interface";
-import { LoginDto, RegisterDto } from "./dtos/register.dto";
+import { LoginDto, RefreshDto, RegisterDto } from "./dtos/register.dto";
 import { AuthError } from "../shared/errors/http.errors";
 import { IAuthConfig } from "./config/auth.config.interface";
 import { AUTH_ERROR_CODES, AUTH_MESSAGES } from "./auth.constants";
@@ -67,8 +67,10 @@ export class AuthService {
 
     return toUserResponseDto(user);
   }
+
   async login(dto: LoginDto): Promise<UserResponseDto> {
     const exist = await this.authRepository.findUserByEmail(dto.email);
+    console.log(dto);
 
     if (!exist)
       throw new AuthError(
@@ -105,9 +107,54 @@ export class AuthService {
       role: exist.role,
       email: exist.email,
     });
-    await this.refreshTokenStore.save(refreshToken, exist.id, 60 * 60 * 24 * 7);
-    return { ...toUserResponseDto(exist), accessToken ,refreshToken};
+    await this.refreshTokenStore.save(
+      refreshToken,
+      exist.id,
+      dto.deviceId,
+      60 * 60 * 24 * 7,
+    );
+    return { ...toUserResponseDto(exist), accessToken, refreshToken };
   }
+
+  async refreshToken(dto: RefreshDto) {
+    const { token, deviceId } = dto;
+    const decode = this.jwtService.verifyRefreshToken(token);
+
+    const valid = await this.refreshTokenStore.verify(
+      token,
+      decode.user_id,
+      deviceId,
+    );
+    console.log(valid, "HERERERE");
+
+    if (!valid?.valid)
+      throw new AuthError(
+        AUTH_MESSAGES.INVALID_REFRESH_TOKEN,
+        STATUS_CODES.UNAUTHORIZED,
+        AUTH_ERROR_CODES.REFRESH_TOKEN_EXPIRED,
+      );
+
+    const newAccessToken = this.jwtService.generateAccessToken({
+      email: decode.email,
+      user_id: decode.user_id,
+      role: decode.role,
+    });
+    const newRefreshToken = this.jwtService.generateRefreshToken({
+      email: decode.email,
+      user_id: decode.user_id,
+      role: decode.role,
+    });
+
+    await this.refreshTokenStore.save(
+      newRefreshToken,
+      decode.user_id,
+      deviceId,
+      60 * 60 * 24 * 7,
+    );
+
+    return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+  }
+
   async verifyEmail(email: string, otp: string): Promise<UserResponseDto> {
     const user = await this.authRepository.findUserByEmail(email);
     if (!user) {
