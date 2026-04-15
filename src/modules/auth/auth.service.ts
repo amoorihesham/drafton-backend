@@ -67,7 +67,6 @@ export class AuthService {
 
   async login(dto: LoginDto): Promise<UserResponseDto> {
     const exist = await this.authRepository.findUserByEmail(dto.email);
-    console.log(dto);
 
     if (!exist)
       throw new AuthError(
@@ -126,6 +125,12 @@ export class AuthService {
 
   async refreshToken(dto: RefreshDto) {
     const { token, deviceId } = dto;
+    if (!token)
+      throw new AuthError(
+        AUTH_MESSAGES.INVALID_REFRESH_TOKEN,
+        STATUS_CODES.BAD_REQUEST,
+        AUTH_ERROR_CODES.INVALID_REFRESH_TOKEN,
+      );
     const decode = verifyJwtToken(token, this.config.JWT_REFRESH_SECRET);
 
     const valid = await this.refreshTokenStore.verify(
