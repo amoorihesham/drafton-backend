@@ -1,6 +1,7 @@
 CREATE TYPE "public"."user_role" AS ENUM('provider', 'client');--> statement-breakpoint
 CREATE TABLE "users" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"internal_id" bigserial PRIMARY KEY NOT NULL,
+	"id" uuid DEFAULT gen_random_uuid() NOT NULL,
 	"email" text NOT NULL,
 	"username" text NOT NULL,
 	"password_hash" text NOT NULL,
@@ -16,3 +17,5 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_email_unique" UNIQUE("email"),
 	CONSTRAINT "users_username_unique" UNIQUE("username")
 );
+--> statement-breakpoint
+CREATE INDEX "users_internal_id_idx" ON "users" USING btree ("internal_id");

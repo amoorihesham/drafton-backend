@@ -1,5 +1,5 @@
 {
-  "id": "ffbfb2bf-00dd-4484-b9fe-b40702c847fe",
+  "id": "d4bb2823-7254-4d86-a2df-fd44e6178f51",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -8,10 +8,16 @@
       "name": "users",
       "schema": "",
       "columns": {
+        "internal_id": {
+          "name": "internal_id",
+          "type": "bigserial",
+          "primaryKey": true,
+          "notNull": true
+        },
         "id": {
           "name": "id",
           "type": "uuid",
-          "primaryKey": true,
+          "primaryKey": false,
           "notNull": true,
           "default": "gen_random_uuid()"
         },
@@ -94,7 +100,23 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "users_internal_id_idx": {
+          "name": "users_internal_id_idx",
+          "columns": [
+            {
+              "expression": "internal_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
