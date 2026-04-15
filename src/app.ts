@@ -3,13 +3,13 @@ import helmet from "@fastify/helmet";
 import cors from "@fastify/cors";
 import envPlugin from "@fastify/env";
 import { ConfigSchema } from "./config/index.js";
-import { errorHandler } from "./infrastructure/http/error-handler.js";
-import { createDatabaseConnection } from "./infrastructure/db/connection.js";
-import { MailService } from "./infrastructure/mail/mail.service.js";
-import { authRoutes } from "./infrastructure/http/routes/auth.routes.js";
-import { createAuthContainer } from "./infrastructure/containers/auth.container.js";
+import { errorHandler } from "./shared/errors/error-handler.js";
+import { MailService } from "./shared/services/mail/mail.service.js";
 import cookie from "@fastify/cookie";
-import { createRedisConnection } from "./infrastructure/redis/index.js";
+import { createRedisConnection } from "./redis/index.js";
+import { buildAuthModule } from "./modules/auth/auth.module.js";
+import { authRoutes } from "./modules/auth/auth.routes.js";
+import { createDatabaseConnection } from "./db/connection.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -37,7 +37,10 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(cors);
   await app.register(cookie);
 
-  const db = await createDatabaseConnection(app.config.DATABASE_URL, app.config.DB_POOL_SIZE);
+  const db = await createDatabaseConnection(
+    app.config.DATABASE_URL,
+    app.config.DB_POOL_SIZE,
+  );
   const redis = createRedisConnection();
 
   const mailService = new MailService({
@@ -49,19 +52,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   //CONTAINERS
-  const { authController } = createAuthContainer(db, redis, mailService, {
-    hash: { saltRounds: app.config.SALT_ROUNDS },
-    jwt: {
-      accessTokenExpiry: app.config.JWT_ACCESS_TOKEN_EXPIRY,
-      jwtAccessSecret: app.config.JWT_ACCESS_SECRET,
-      jwtRefreshSecret: app.config.JWT_REFRESH_SECRET,
-      refreshTokenExpiry: app.config.JWT_REFRESH_TOKEN_EXPIRY,
-    },
-    otp: {
-      reset_otp_expiry_time: app.config.RESET_OTP_EXPIRY_MINUTES,
-      verification_otp_expiry_time: app.config.OTP_EXPIRY_MINUTES,
-    },
-  });
+  const authController = buildAuthModule(db, mailService, app.config);
 
   app.setErrorHandler(errorHandler);
 
