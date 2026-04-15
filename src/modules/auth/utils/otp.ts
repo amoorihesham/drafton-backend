@@ -14,7 +14,8 @@ export function verifyOtp({
 }: {
   userOtp: string;
   otp: string;
-  expiry: Date;
+  expiry: Date | null;
 }): boolean {
+  if (!expiry) return false;
   return userOtp === otp && expiry > new Date();
 }

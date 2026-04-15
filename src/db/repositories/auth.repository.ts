@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
 import { Database } from "../connection.js";
 import { users } from "../schema/index.js";
-import { IAuthRepository } from "@/modules/auth/repository.interface.js";
 import { CreateUserDto, FullUserType } from "@/modules/auth/types/index.js";
+import { IAuthRepository } from "@/modules/auth/interfaces/repository.interface.js";
 
 export class AuthRepository implements IAuthRepository {
   constructor(private readonly db: Database) {}

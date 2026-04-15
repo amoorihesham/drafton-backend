@@ -52,7 +52,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   //CONTAINERS
-  const authController = buildAuthModule(db, mailService, app.config);
+  const authController = buildAuthModule(db, redis, mailService, app.config);
 
   app.setErrorHandler(errorHandler);
 

@@ -1,5 +1,5 @@
 import { QueryResult } from "pg";
-import { CreateUserDto, FullUserType } from "./types";
+import { CreateUserDto, FullUserType } from "../types";
 
 export interface IAuthRepository {
   // user operations

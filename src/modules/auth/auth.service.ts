@@ -1,11 +1,30 @@
+import { IMailService } from "@/shared/services/mail/mail.service.interface";
+import {
+  AuthConfig,
+  CreateUserDto,
+  FullUserType,
+  LoginDto,
+  RefreshDto,
+  UserResponseDto,
+} from "./types";
+import { AuthError } from "@/shared/errors/http.errors";
+import { AUTH_ERROR_CODES, AUTH_MESSAGES } from "./constants/messages";
+import { STATUS_CODES } from "@/shared/http/CONSTANTS";
+import { compare, hash } from "./utils/hasing";
+import { generateOtp, verifyOtp } from "./utils/otp";
+import { generateJwtToken, verifyJwtToken } from "./utils/jwt";
+import { ITokenStroe } from "./interfaces/token-store.interface";
+import { IAuthRepository } from "./interfaces/repository.interface";
+
 export class AuthService {
   constructor(
     private readonly authRepository: IAuthRepository,
     private readonly mailService: IMailService,
+    private readonly refreshTokenStore: ITokenStroe,
     private readonly config: AuthConfig,
   ) {}
 
-  async register(dto: RegisterDto): Promise<UserResponseDto> {
+  async register(dto: CreateUserDto): Promise<UserResponseDto> {
     const existingEmail = await this.authRepository.findUserByEmail(dto.email);
     if (existingEmail) {
       throw new AuthError(
@@ -29,13 +48,13 @@ export class AuthService {
     const passwordHash = await hash(dto.password);
 
     // create the user
-    const user = await this.authRepository.createUser({
+    const [user] = await this.authRepository.createUser({
       ...dto,
-      passwordHash,
+      password: passwordHash,
     });
 
     // generate otp and expiry
-    const { otp, expiry } = this.otpService.generateVerficationOtp();
+    const { otp, expiry } = generateOtp(this.config.OTP_EXPIRY_MINUTES);
 
     // save otp
     await this.authRepository.saveEmailVerificationOtp(user.id, otp, expiry);
@@ -43,7 +62,7 @@ export class AuthService {
     // send verification email
     await this.mailService.sendVerificationEmail(user.email, otp);
 
-    return toUserResponseDto(user);
+    return this.toUserResponseDto(user);
   }
 
   async login(dto: LoginDto): Promise<UserResponseDto> {
@@ -57,10 +76,7 @@ export class AuthService {
         AUTH_ERROR_CODES.USER_NOT_FOUND,
       );
 
-    const isValidPassword = await this.passwordManager.compare(
-      dto.password,
-      exist.passwordHash,
-    );
+    const isValidPassword = await compare(dto.password, exist.passwordHash);
     if (!isValidPassword)
       throw new AuthError(
         AUTH_MESSAGES.INVALID_CREDENTIALS,
@@ -75,35 +91,48 @@ export class AuthService {
         AUTH_ERROR_CODES.EMAIL_NOT_VERIFIED,
       );
 
-    const accessToken = this.jwtService.generateAccessToken({
-      user_id: exist.id,
-      role: exist.role,
-      email: exist.email,
-    });
-    const refreshToken = this.jwtService.generateRefreshToken({
-      user_id: exist.id,
-      role: exist.role,
-      email: exist.email,
-    });
+    const accessToken = generateJwtToken(
+      {
+        id: exist.id,
+        email: exist.email,
+        role: exist.role,
+        username: exist.username,
+        isActive: exist.isActive,
+        isEmailVerified: exist.isEmailVerified,
+      },
+      this.config.JWT_ACCESS_SECRET,
+      this.config.JWT_ACCESS_TOKEN_EXPIRY,
+    );
+    const refreshToken = generateJwtToken(
+      {
+        id: exist.id,
+        email: exist.email,
+        role: exist.role,
+        username: exist.username,
+        isActive: exist.isActive,
+        isEmailVerified: exist.isEmailVerified,
+      },
+      this.config.JWT_REFRESH_SECRET,
+      this.config.JWT_REFRESH_TOKEN_EXPIRY,
+    );
     await this.refreshTokenStore.save(
       refreshToken,
       exist.id,
       dto.deviceId,
-      60 * 60 * 24 * 7,
+      this.config.JWT_REFRESH_TOKEN_EXPIRY,
     );
-    return { ...toUserResponseDto(exist), accessToken, refreshToken };
+    return { ...this.toUserResponseDto(exist), accessToken, refreshToken };
   }
 
   async refreshToken(dto: RefreshDto) {
     const { token, deviceId } = dto;
-    const decode = this.jwtService.verifyRefreshToken(token);
+    const decode = verifyJwtToken(token, this.config.JWT_REFRESH_SECRET);
 
     const valid = await this.refreshTokenStore.verify(
       token,
-      decode.user_id,
+      decode.id,
       deviceId,
     );
-    console.log(valid, "HERERERE");
 
     if (!valid)
       throw new AuthError(
@@ -112,22 +141,36 @@ export class AuthService {
         AUTH_ERROR_CODES.REFRESH_TOKEN_EXPIRED,
       );
 
-    const newAccessToken = this.jwtService.generateAccessToken({
-      email: decode.email,
-      user_id: decode.user_id,
-      role: decode.role,
-    });
-    const newRefreshToken = this.jwtService.generateRefreshToken({
-      email: decode.email,
-      user_id: decode.user_id,
-      role: decode.role,
-    });
+    const newAccessToken = generateJwtToken(
+      {
+        id: decode.id,
+        email: decode.email,
+        role: decode.role,
+        username: decode.username,
+        isActive: decode.isActive,
+        isEmailVerified: decode.isEmailVerified,
+      },
+      this.config.JWT_ACCESS_SECRET,
+      this.config.JWT_ACCESS_TOKEN_EXPIRY,
+    );
+    const newRefreshToken = generateJwtToken(
+      {
+        id: decode.id,
+        email: decode.email,
+        role: decode.role,
+        username: decode.username,
+        isActive: decode.isActive,
+        isEmailVerified: decode.isEmailVerified,
+      },
+      this.config.JWT_REFRESH_SECRET,
+      this.config.JWT_REFRESH_TOKEN_EXPIRY,
+    );
 
     await this.refreshTokenStore.save(
       newRefreshToken,
-      decode.user_id,
+      decode.id,
       deviceId,
-      60 * 60 * 24 * 7,
+      this.config.JWT_REFRESH_TOKEN_EXPIRY,
     );
 
     return { accessToken: newAccessToken, refreshToken: newRefreshToken };
@@ -149,9 +192,9 @@ export class AuthService {
         AUTH_ERROR_CODES.OTP_NOT_FOUND,
       );
     }
-    const isValidOtp = this.otpService.verifyOtp({
-      userOtp: otp,
-      otp: user.emailVerificationOtp,
+    const isValidOtp = verifyOtp({
+      userOtp: user.emailVerificationOtp,
+      otp: otp,
       expiry: user.emailVerificationOtpExpiry,
     });
     if (!isValidOtp) {
@@ -166,10 +209,23 @@ export class AuthService {
     await this.authRepository.clearEmailVerificationOtp(user.id);
 
     // update user as verified
-    const updatedUser = await this.authRepository.updateUser(user.id, {
+    const [updatedUser] = await this.authRepository.updateUser(user.id, {
       isEmailVerified: true,
     });
 
-    return toUserResponseDto(updatedUser);
+    return this.toUserResponseDto(updatedUser);
+  }
+
+  private toUserResponseDto(user: FullUserType): UserResponseDto {
+    return {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+      isActive: user.isActive,
+      isEmailVerified: user.isEmailVerified,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 }

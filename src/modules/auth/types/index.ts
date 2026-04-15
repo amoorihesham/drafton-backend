@@ -10,7 +10,7 @@ export type AuthConfig = {
 
 export type JwtPayload = Pick<
   FullUserType,
-  "email" | "username" | "role" | "isActive" | "isEmailVerified"
+  "email" | "username" | "role" | "isActive" | "isEmailVerified" | "id"
 >;
 
 export type FullUserType = {
@@ -35,11 +35,30 @@ export type CreateUserDto = {
   password: string;
 };
 
-export type UserDtoType = Omit<
+export type LoginDto = {
+  email: string;
+  password: string;
+  deviceId: string;
+};
+
+export type RefreshDto = {
+  token: string;
+  deviceId: string;
+};
+
+export type VerifyEmailDto = {
+  email: string;
+  otp: string;
+};
+
+export type UserResponseDto = Omit<
   FullUserType,
   | "passwordHash"
   | "emailVerificationOtp"
   | "emailVerificationOtpExpiry"
   | "passwordResetOtp"
   | "passwordResetOtpExpiry"
->;
+> & {
+  accessToken?: string;
+  refreshToken?: string;
+};

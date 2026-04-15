@@ -1,36 +1,29 @@
-import crypto from "node:crypto";
+import { ITokenStroe } from "@/modules/auth/interfaces/token-store.interface";
 import { Redis } from "@upstash/redis";
-import { IRefreshTokenStore } from "@/core/auth/interfaces/services/refresh-token-store.interface";
 
-export class RefreshTokenStore implements IRefreshTokenStore {
+export class RefreshTokenStore implements ITokenStroe {
   constructor(private redis: Redis) {}
-
-  private hash(token: string) {
-    return crypto.createHash("sha256").update(token).digest("hex");
-  }
 
   private sessionKey(userId: string, deviceId: string) {
     return `session:${userId}:${deviceId}`;
   }
 
   async save(token: string, userId: string, deviceId: string, ttl: number) {
-    const hash = this.hash(token);
     const key = this.sessionKey(userId, deviceId);
 
-    await this.redis.set(key, JSON.stringify({ refreshHash: hash }), {
+    await this.redis.set(key, JSON.stringify({ token }), {
       ex: ttl,
     });
   }
 
   async verify(token: string, userId: string, deviceId: string) {
-    const hash = this.hash(token);
     const key = this.sessionKey(userId, deviceId);
 
-    const data: { refreshHash: string } | null = await this.redis.get(key);
+    const data: { token: string } | null = await this.redis.get(key);
 
     if (!data) return false;
 
-    if (data?.refreshHash !== hash) return false;
+    if (data?.token !== token) return false;
 
     return true;
   }
