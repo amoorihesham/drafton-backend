@@ -17,7 +17,7 @@ export const AUTH_ERROR_CODES = {
 } as const;
 
 export const AUTH_MESSAGES = {
-  REGISTER_SUCCESS: "Registration successful. Please check your email for the verification OTP.",
+  REGISTER_SUCCESS: "Registration successful. Please check your email for the verification link.",
   VERIFY_EMAIL_SUCCESS: "Email verified successfully. You can now log in.",
   LOGIN_SUCCESS: "Logged in successfully.",
   LOGOUT_SUCCESS: "Logged out successfully.",
