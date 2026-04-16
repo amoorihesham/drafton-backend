@@ -4,7 +4,7 @@ export interface MailTemplate {
 }
 
 export const mailTemplates = {
-  verificationEmail: (otp: string): MailTemplate => ({
+  verificationEmail: (otp: string, email: string): MailTemplate => ({
     subject: "Verify your Drafton account",
     html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
@@ -24,7 +24,7 @@ export const mailTemplates = {
           color: #1a1a1a;
           margin: 24px 0;
         ">
-          ${otp}
+          <a href="${process.env.FRONTEND_URL}/verify-email?otp=${otp}&email=${email}">Click this link</a>
         </div>
         <p style="color: #888; font-size: 13px;">
           If you did not create a Drafton account, you can safely ignore this email.

@@ -28,7 +28,7 @@ export class MailService implements IMailService {
   }
 
   async sendVerificationEmail(email: string, otp: string): Promise<void> {
-    await this.send(email, mailTemplates.verificationEmail(otp));
+    await this.send(email, mailTemplates.verificationEmail(otp,email));
   }
 
   async sendPasswordResetEmail(email: string, otp: string): Promise<void> {
