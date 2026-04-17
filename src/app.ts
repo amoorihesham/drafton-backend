@@ -34,13 +34,13 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   await app.register(helmet);
-  await app.register(cors);
   await app.register(cookie);
+  await app.register(cors, {
+    origin: app.config.FRONTEND_URL,
+    credentials: true,
+  });
 
-  const db = await createDatabaseConnection(
-    app.config.DATABASE_URL,
-    app.config.DB_POOL_SIZE,
-  );
+  const db = await createDatabaseConnection(app.config.DATABASE_URL, app.config.DB_POOL_SIZE);
   const redis = createRedisConnection();
 
   const mailService = new MailService({
