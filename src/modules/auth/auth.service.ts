@@ -1,12 +1,5 @@
 import { IMailService } from "@/shared/services/mail/mail.service.interface";
-import {
-  AuthConfig,
-  CreateUserDto,
-  FullUserType,
-  LoginDto,
-  RefreshDto,
-  UserResponseDto,
-} from "./types";
+import { AuthConfig, CreateUserDto, FullUserType, LoginDto, RefreshDto, UserResponseDto } from "./types";
 import { AuthError } from "@/shared/errors/http.errors";
 import { AUTH_ERROR_CODES, AUTH_MESSAGES } from "./constants/messages";
 import { STATUS_CODES } from "@/shared/http/CONSTANTS";
@@ -27,22 +20,12 @@ export class AuthService {
   async register(dto: CreateUserDto): Promise<UserResponseDto> {
     const existingEmail = await this.authRepository.findUserByEmail(dto.email);
     if (existingEmail) {
-      throw new AuthError(
-        AUTH_MESSAGES.EMAIL_TAKEN,
-        STATUS_CODES.CONFLICT,
-        AUTH_ERROR_CODES.EMAIL_TAKEN,
-      );
+      throw new AuthError(AUTH_MESSAGES.EMAIL_TAKEN, STATUS_CODES.CONFLICT, AUTH_ERROR_CODES.EMAIL_TAKEN);
     }
 
-    const existingUsername = await this.authRepository.findUserByUsername(
-      dto.username,
-    );
+    const existingUsername = await this.authRepository.findUserByUsername(dto.username);
     if (existingUsername) {
-      throw new AuthError(
-        AUTH_MESSAGES.USERNAME_TAKEN,
-        STATUS_CODES.CONFLICT,
-        AUTH_ERROR_CODES.USERNAME_TAKEN,
-      );
+      throw new AuthError(AUTH_MESSAGES.USERNAME_TAKEN, STATUS_CODES.CONFLICT, AUTH_ERROR_CODES.USERNAME_TAKEN);
     }
     // hash the password
     const passwordHash = await hash(dto.password);
@@ -69,11 +52,7 @@ export class AuthService {
     const exist = await this.authRepository.findUserByEmail(dto.email);
 
     if (!exist)
-      throw new AuthError(
-        AUTH_MESSAGES.USER_NOT_FOUND,
-        STATUS_CODES.NOT_FOUND,
-        AUTH_ERROR_CODES.USER_NOT_FOUND,
-      );
+      throw new AuthError(AUTH_MESSAGES.USER_NOT_FOUND, STATUS_CODES.NOT_FOUND, AUTH_ERROR_CODES.USER_NOT_FOUND);
 
     const isValidPassword = await compare(dto.password, exist.passwordHash);
     if (!isValidPassword)
@@ -114,13 +93,18 @@ export class AuthService {
       this.config.JWT_REFRESH_SECRET,
       this.config.JWT_REFRESH_TOKEN_EXPIRY,
     );
-    await this.refreshTokenStore.save(
-      refreshToken,
-      exist.id,
-      dto.deviceId,
-      this.config.JWT_REFRESH_TOKEN_EXPIRY,
-    );
+    await this.refreshTokenStore.save(refreshToken, exist.id, dto.deviceId, this.config.JWT_REFRESH_TOKEN_EXPIRY);
     return { ...this.toUserResponseDto(exist), accessToken, refreshToken };
+  }
+
+  async logout(dto: { deviceId: string }, userId: string): Promise<UserResponseDto> {
+    const exist = await this.authRepository.findUserById(userId);
+
+    if (!exist)
+      throw new AuthError(AUTH_MESSAGES.USER_NOT_FOUND, STATUS_CODES.NOT_FOUND, AUTH_ERROR_CODES.USER_NOT_FOUND);
+
+    await this.refreshTokenStore.revoke(userId, dto.deviceId);
+    return this.toUserResponseDto(exist);
   }
 
   async refreshToken(dto: RefreshDto) {
@@ -133,11 +117,7 @@ export class AuthService {
       );
     const decode = verifyJwtToken(token, this.config.JWT_REFRESH_SECRET);
 
-    const valid = await this.refreshTokenStore.verify(
-      token,
-      decode.id,
-      deviceId,
-    );
+    const valid = await this.refreshTokenStore.verify(token, decode.id, deviceId);
 
     if (!valid)
       throw new AuthError(
@@ -171,12 +151,7 @@ export class AuthService {
       this.config.JWT_REFRESH_TOKEN_EXPIRY,
     );
 
-    await this.refreshTokenStore.save(
-      newRefreshToken,
-      decode.id,
-      deviceId,
-      this.config.JWT_REFRESH_TOKEN_EXPIRY,
-    );
+    await this.refreshTokenStore.save(newRefreshToken, decode.id, deviceId, this.config.JWT_REFRESH_TOKEN_EXPIRY);
 
     return { accessToken: newAccessToken, refreshToken: newRefreshToken };
   }
@@ -184,18 +159,10 @@ export class AuthService {
   async verifyEmail(email: string, otp: string): Promise<UserResponseDto> {
     const user = await this.authRepository.findUserByEmail(email);
     if (!user) {
-      throw new AuthError(
-        AUTH_MESSAGES.USER_NOT_FOUND,
-        STATUS_CODES.NOT_FOUND,
-        AUTH_ERROR_CODES.USER_NOT_FOUND,
-      );
+      throw new AuthError(AUTH_MESSAGES.USER_NOT_FOUND, STATUS_CODES.NOT_FOUND, AUTH_ERROR_CODES.USER_NOT_FOUND);
     }
     if (!user.emailVerificationOtp) {
-      throw new AuthError(
-        AUTH_MESSAGES.OTP_NOT_FOUND,
-        STATUS_CODES.NOT_FOUND,
-        AUTH_ERROR_CODES.OTP_NOT_FOUND,
-      );
+      throw new AuthError(AUTH_MESSAGES.OTP_NOT_FOUND, STATUS_CODES.NOT_FOUND, AUTH_ERROR_CODES.OTP_NOT_FOUND);
     }
     const isValidOtp = verifyOtp({
       userOtp: user.emailVerificationOtp,
@@ -203,11 +170,7 @@ export class AuthService {
       expiry: user.emailVerificationOtpExpiry,
     });
     if (!isValidOtp) {
-      throw new AuthError(
-        AUTH_MESSAGES.INVALID_OTP,
-        STATUS_CODES.UNAUTHORIZED,
-        AUTH_ERROR_CODES.INVALID_OTP,
-      );
+      throw new AuthError(AUTH_MESSAGES.INVALID_OTP, STATUS_CODES.UNAUTHORIZED, AUTH_ERROR_CODES.INVALID_OTP);
     }
 
     // clear the otp

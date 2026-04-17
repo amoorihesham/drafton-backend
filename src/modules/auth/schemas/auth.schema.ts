@@ -1,4 +1,3 @@
-
 import { successResponse } from "@/shared/http/response.utils";
 import { Type } from "@sinclair/typebox";
 
@@ -46,12 +45,10 @@ export const loginSchema = {
 };
 
 export const logoutSchema = {
-  cookies: Type.Object({
-    refresh_token: Type.String(),
-  }),
   body: Type.Object({
     deviceId: Type.String(),
   }),
+  
   response: {
     200: successResponse(Type.Object({})),
   },

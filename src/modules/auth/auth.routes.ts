@@ -26,7 +26,7 @@ export function authRoutes(authController: AuthController) {
       authController.refresh.bind(authController),
     );
     fastify.post(
-      "/logout",
+      "/logout/:userId",
       { schema: logoutSchema },
       authController.logout.bind(authController),
     );

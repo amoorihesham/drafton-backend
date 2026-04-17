@@ -35,7 +35,17 @@ export class AuthController {
     reply.status(STATUS_CODES.OK).send(successResponse(result, AUTH_MESSAGES.LOGIN_SUCCESS));
   }
 
-  async logout(request: FastifyRequest, reply: FastifyReply): Promise<void> {}
+  async logout(
+    request: FastifyRequest<{ Body: { deviceId: string }; Params: { userId: string } }>,
+    reply: FastifyReply,
+  ): Promise<void> {
+    console.log(request.params, request.body);
+
+    const result = await this.authService.logout(request.body, request.params.userId);
+    reply.clearCookie("access_token");
+    reply.clearCookie("refresh_token");
+    reply.status(STATUS_CODES.OK).send(successResponse(result, AUTH_MESSAGES.LOGOUT_SUCCESS));
+  }
 
   async refresh(
     request: FastifyRequest<{
