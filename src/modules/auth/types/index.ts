@@ -19,7 +19,7 @@ export type FullUserType = {
   email: string;
   username: string;
   passwordHash: string;
-  role: "provider" | "client";
+  role: "provider" | "client" | "admin";
   isActive: boolean;
   isEmailVerified: boolean;
   emailVerificationOtp: string | null;

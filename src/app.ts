@@ -9,6 +9,8 @@ import cookie from "@fastify/cookie";
 import { createRedisConnection } from "./redis/index.js";
 import { buildAuthModule } from "./modules/auth/auth.module.js";
 import { buildSubscriptionModule } from "./modules/subscription/subscription.module.js";
+import { buildPlanModule } from "./modules/plans/plans.module.js";
+import { planRoutes } from "./modules/plans/plans.routes.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { createDatabaseConnection } from "./db/connection.js";
 
@@ -55,6 +57,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   //CONTAINERS
   const subscriptionService = buildSubscriptionModule(db);
   const authController = buildAuthModule(db, redis, mailService, subscriptionService, app.config);
+  const planController = buildPlanModule(db);
 
   app.setErrorHandler(errorHandler);
 
@@ -63,6 +66,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       v1.get("/health", async () => ({ status: "ok" }));
       v1.get("/hello", async () => ({ message: "Hello From Drafton Backend" }));
       v1.register(authRoutes(authController, app.config.JWT_ACCESS_SECRET), { prefix: "/auth" });
+      v1.register(planRoutes(planController, app.config.JWT_ACCESS_SECRET), { prefix: "/plans" });
     },
     { prefix: "/api/v1" },
   );
