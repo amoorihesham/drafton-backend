@@ -8,12 +8,15 @@ import { generateOtp, verifyOtp } from "./utils/otp";
 import { generateJwtToken, verifyJwtToken } from "./utils/jwt";
 import { ITokenStroe } from "./interfaces/token-store.interface";
 import { IAuthRepository } from "./interfaces/repository.interface";
+import { ISubscriptionService } from "@/modules/subscription/interfaces/service.interface";
+import { MeResponseDto } from "./types";
 
 export class AuthService {
   constructor(
     private readonly authRepository: IAuthRepository,
     private readonly mailService: IMailService,
     private readonly refreshTokenStore: ITokenStroe,
+    private readonly subscriptionService: ISubscriptionService,
     private readonly config: AuthConfig,
   ) {}
 
@@ -35,6 +38,9 @@ export class AuthService {
       ...dto,
       password: passwordHash,
     });
+
+    // auto-subscribe to free plan
+    await this.subscriptionService.createFreeSubscription(user.internal_id);
 
     // generate otp and expiry
     const { otp, expiry } = generateOtp(this.config.OTP_EXPIRY_MINUTES);
@@ -182,6 +188,17 @@ export class AuthService {
     });
 
     return this.toUserResponseDto(updatedUser);
+  }
+
+  async getMe(userId: string): Promise<MeResponseDto> {
+    const user = await this.authRepository.findUserById(userId);
+    if (!user) {
+      throw new AuthError(AUTH_MESSAGES.USER_NOT_FOUND, STATUS_CODES.NOT_FOUND, AUTH_ERROR_CODES.USER_NOT_FOUND);
+    }
+
+    const subscription = await this.subscriptionService.getActiveSubscription(user.internal_id);
+
+    return { user: this.toUserResponseDto(user), subscription };
   }
 
   private toUserResponseDto(user: FullUserType): UserResponseDto {

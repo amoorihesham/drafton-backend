@@ -70,6 +70,37 @@ export const refreshSchema = {
   },
 };
 
+export const getMeSchema = {
+  response: {
+    200: successResponse(
+      Type.Object({
+        user: Type.Object({
+          id: Type.String(),
+          email: Type.String(),
+          username: Type.String(),
+          role: Type.String(),
+          isEmailVerified: Type.Boolean(),
+          isActive: Type.Boolean(),
+          createdAt: Type.String(),
+          updatedAt: Type.String(),
+        }),
+        subscription: Type.Union([
+          Type.Object({
+            planName: Type.Union([Type.Literal("free"), Type.Literal("pro"), Type.Literal("ultimate")]),
+            status: Type.String(),
+            maxDocumentsPerDay: Type.Number(),
+            features: Type.Unknown(),
+            currentPeriodStart: Type.String(),
+            currentPeriodEnd: Type.String(),
+            trialEndsAt: Type.Union([Type.String(), Type.Null()]),
+          }),
+          Type.Null(),
+        ]),
+      }),
+    ),
+  },
+};
+
 export const verifyEmailSchema = {
   body: Type.Object({
     email: Type.String({ format: "email" }),

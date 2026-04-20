@@ -82,4 +82,9 @@ export class AuthController {
     const result = await this.authService.verifyEmail(email, otp);
     reply.status(STATUS_CODES.OK).send(successResponse(result, AUTH_MESSAGES.VERIFY_EMAIL_SUCCESS));
   }
+
+  async getMe(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const result = await this.authService.getMe(request.user.id);
+    reply.status(STATUS_CODES.OK).send(successResponse(result, AUTH_MESSAGES.GET_ME_SUCCESS));
+  }
 }

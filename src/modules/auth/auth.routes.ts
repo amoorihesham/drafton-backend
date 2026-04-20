@@ -1,15 +1,19 @@
 import { FastifyInstance } from "fastify";
 import { AuthController } from "./auth.controller";
 import {
+  getMeSchema,
   loginSchema,
   logoutSchema,
   refreshSchema,
   registerSchema,
   verifyEmailSchema,
 } from "./schemas/auth.schema";
+import { createAuthHook } from "@/shared/hooks/authenticate.js";
 
-export function authRoutes(authController: AuthController) {
+export function authRoutes(authController: AuthController, jwtSecret: string) {
   return async (fastify: FastifyInstance) => {
+    const authenticate = createAuthHook(jwtSecret);
+
     fastify.post(
       "/register",
       { schema: registerSchema },
@@ -34,6 +38,11 @@ export function authRoutes(authController: AuthController) {
       "/verify-email",
       { schema: verifyEmailSchema },
       authController.verifyEmail.bind(authController),
+    );
+    fastify.get(
+      "/me",
+      { schema: getMeSchema, preHandler: authenticate },
+      authController.getMe.bind(authController),
     );
   };
 }

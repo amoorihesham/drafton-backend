@@ -14,6 +14,7 @@ export type JwtPayload = Pick<
 >;
 
 export type FullUserType = {
+  internal_id: number;
   id: string;
   email: string;
   username: string;
@@ -51,8 +52,14 @@ export type VerifyEmailDto = {
   otp: string;
 };
 
+export type MeResponseDto = {
+  user: UserResponseDto;
+  subscription: import("@/modules/subscription/types/index.js").ActiveSubscriptionDto;
+};
+
 export type UserResponseDto = Omit<
   FullUserType,
+  | "internal_id"
   | "passwordHash"
   | "emailVerificationOtp"
   | "emailVerificationOtpExpiry"

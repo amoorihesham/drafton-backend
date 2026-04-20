@@ -8,6 +8,13 @@
       "when": 1776256880830,
       "tag": "0000_careless_colleen_wing",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1776691160188,
+      "tag": "0001_magical_nightshade",
+      "breakpoints": true
     }
   ]
 }
