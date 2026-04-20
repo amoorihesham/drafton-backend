@@ -2,6 +2,7 @@ import Fastify, { FastifyInstance } from "fastify";
 import helmet from "@fastify/helmet";
 import cors from "@fastify/cors";
 import envPlugin from "@fastify/env";
+import swagger from "@fastify/swagger";
 import { ConfigSchema } from "./config/index.js";
 import { errorHandler } from "./shared/errors/error-handler.js";
 import { MailService } from "./shared/services/mail/mail.service.js";
@@ -12,6 +13,7 @@ import { buildSubscriptionModule } from "./modules/subscription/subscription.mod
 import { buildPlanModule } from "./modules/plans/plans.module.js";
 import { planRoutes } from "./modules/plans/plans.routes.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
+import { subscriptionRoutes } from "./modules/subscription/subscription.routes.js";
 import { createDatabaseConnection } from "./db/connection.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
@@ -36,6 +38,23 @@ export async function buildApp(): Promise<FastifyInstance> {
     dotenv: { path: envFile },
   });
 
+  await app.register(swagger, {
+    openapi: {
+      info: { title: "DraftOn API", description: "DraftOn backend REST API", version: "1.0.0" },
+      servers: [{ url: "http://localhost:3000", description: "Local" }],
+      tags: [
+        { name: "Auth", description: "Registration, login, and session management" },
+        { name: "Plans", description: "Plan catalog management — admin only" },
+        { name: "Subscriptions", description: "User subscription management — admin only" },
+      ],
+      components: {
+        securitySchemes: {
+          cookieAuth: { type: "apiKey", in: "cookie", name: "access_token" },
+        },
+      },
+    },
+  });
+
   await app.register(helmet);
   await app.register(cookie);
   await app.register(cors, {
@@ -55,7 +74,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   //CONTAINERS
-  const subscriptionService = buildSubscriptionModule(db);
+  const { subscriptionService, subscriptionController } = buildSubscriptionModule(db);
   const authController = buildAuthModule(db, redis, mailService, subscriptionService, app.config);
   const planController = buildPlanModule(db);
 
@@ -67,6 +86,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       v1.get("/hello", async () => ({ message: "Hello From Drafton Backend" }));
       v1.register(authRoutes(authController, app.config.JWT_ACCESS_SECRET), { prefix: "/auth" });
       v1.register(planRoutes(planController, app.config.JWT_ACCESS_SECRET), { prefix: "/plans" });
+      v1.register(subscriptionRoutes(subscriptionController, app.config.JWT_ACCESS_SECRET), { prefix: "/subscriptions" });
     },
     { prefix: "/api/v1" },
   );

@@ -1,0 +1,2706 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "DraftOn API",
+    "description": "DraftOn backend REST API",
+    "version": "1.0.0"
+  },
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "access_token"
+      }
+    },
+    "schemas": {}
+  },
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/v1/hello": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "summary": "Register a new account",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "username",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "format": "email",
+                    "type": "string"
+                  },
+                  "username": {
+                    "minLength": 3,
+                    "maxLength": 30,
+                    "type": "string"
+                  },
+                  "password": {
+                    "minLength": 8,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "success": true,
+                  "message": "Success",
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "email",
+                      "username",
+                      "role",
+                      "isEmailVerified",
+                      "isActive",
+                      "createdAt"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "username": {
+                        "type": "string"
+                      },
+                      "role": {
+                        "type": "string"
+                      },
+                      "isEmailVerified": {
+                        "type": "boolean"
+                      },
+                      "isActive": {
+                        "type": "boolean"
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "summary": "Login and receive session cookies",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password",
+                  "deviceId"
+                ],
+                "properties": {
+                  "email": {
+                    "format": "email",
+                    "type": "string"
+                  },
+                  "password": {
+                    "minLength": 8,
+                    "type": "string"
+                  },
+                  "deviceId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "success": true,
+                  "message": "Success",
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "email",
+                      "username",
+                      "role",
+                      "isEmailVerified",
+                      "isActive",
+                      "accessToken",
+                      "createdAt"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "username": {
+                        "type": "string"
+                      },
+                      "role": {
+                        "type": "string"
+                      },
+                      "isEmailVerified": {
+                        "type": "boolean"
+                      },
+                      "isActive": {
+                        "type": "boolean"
+                      },
+                      "accessToken": {
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/verify-email": {
+      "post": {
+        "summary": "Verify email with OTP",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "otp"
+                ],
+                "properties": {
+                  "email": {
+                    "format": "email",
+                    "type": "string"
+                  },
+                  "otp": {
+                    "minLength": 6,
+                    "maxLength": 6,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "success": true,
+                  "message": "Success",
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "email",
+                      "username",
+                      "role",
+                      "isEmailVerified",
+                      "createdAt"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "username": {
+                        "type": "string"
+                      },
+                      "role": {
+                        "type": "string"
+                      },
+                      "isEmailVerified": {
+                        "type": "boolean"
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "summary": "Refresh access token",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "deviceId"
+                ],
+                "properties": {
+                  "deviceId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "cookie",
+            "name": "refresh_token",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "success": true,
+                  "message": "Success",
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "accessToken"
+                    ],
+                    "properties": {
+                      "accessToken": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout/{userId}": {
+      "post": {
+        "summary": "Logout and revoke session",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "deviceId"
+                ],
+                "properties": {
+                  "deviceId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "userId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "success": true,
+                  "message": "Success",
+                  "data": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "summary": "Get current user with subscription",
+        "tags": [
+          "Auth"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "success": true,
+                  "message": "Success",
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "user",
+                      "subscription"
+                    ],
+                    "properties": {
+                      "user": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "email",
+                          "username",
+                          "role",
+                          "isEmailVerified",
+                          "isActive",
+                          "createdAt",
+                          "updatedAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "username": {
+                            "type": "string"
+                          },
+                          "role": {
+                            "type": "string"
+                          },
+                          "isEmailVerified": {
+                            "type": "boolean"
+                          },
+                          "isActive": {
+                            "type": "boolean"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "updatedAt": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "subscription": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "required": [
+                              "planName",
+                              "status",
+                              "maxDocumentsPerDay",
+                              "features",
+                              "currentPeriodStart",
+                              "currentPeriodEnd",
+                              "trialEndsAt"
+                            ],
+                            "properties": {
+                              "planName": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "free"
+                                    ]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "pro"
+                                    ]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "ultimate"
+                                    ]
+                                  }
+                                ]
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "maxDocumentsPerDay": {
+                                "type": "number"
+                              },
+                              "features": {},
+                              "currentPeriodStart": {
+                                "type": "string"
+                              },
+                              "currentPeriodEnd": {
+                                "type": "string"
+                              },
+                              "trialEndsAt": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/plans/": {
+      "get": {
+        "summary": "List all plans",
+        "tags": [
+          "Plans"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "success": true,
+                  "message": "Success",
+                  "data": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "name",
+                        "price_monthly",
+                        "price_yearly",
+                        "max_documents_per_day",
+                        "features",
+                        "stripe_product_id",
+                        "stripe_monthly_price_id",
+                        "stripe_yearly_price_id",
+                        "is_active",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "free"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "pro"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "ultimate"
+                              ]
+                            }
+                          ]
+                        },
+                        "price_monthly": {
+                          "type": "number"
+                        },
+                        "price_yearly": {
+                          "type": "number"
+                        },
+                        "max_documents_per_day": {
+                          "type": "number"
+                        },
+                        "features": {},
+                        "stripe_product_id": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "stripe_monthly_price_id": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "stripe_yearly_price_id": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "is_active": {
+                          "type": "boolean"
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a plan",
+        "tags": [
+          "Plans"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "price_monthly",
+                  "price_yearly",
+                  "max_documents_per_day"
+                ],
+                "properties": {
+                  "name": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "free"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "pro"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "ultimate"
+                        ]
+                      }
+                    ]
+                  },
+                  "price_monthly": {
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  "price_yearly": {
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  "max_documents_per_day": {
+                    "minimum": 1,
+                    "type": "number"
+                  },
+                  "features": {},
+                  "stripe_product_id": {
+                    "type": "string"
+                  },
+                  "stripe_monthly_price_id": {
+                    "type": "string"
+                  },
+                  "stripe_yearly_price_id": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "success": true,
+                  "message": "Success",
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "name",
+                      "price_monthly",
+                      "price_yearly",
+                      "max_documents_per_day",
+                      "features",
+                      "stripe_product_id",
+                      "stripe_monthly_price_id",
+                      "stripe_yearly_price_id",
+                      "is_active",
+                      "created_at",
+                      "updated_at"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "free"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "pro"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "ultimate"
+                            ]
+                          }
+                        ]
+                      },
+                      "price_monthly": {
+                        "type": "number"
+                      },
+                      "price_yearly": {
+                        "type": "number"
+                      },
+                      "max_documents_per_day": {
+                        "type": "number"
+                      },
+                      "features": {},
+                      "stripe_product_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "stripe_monthly_price_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "stripe_yearly_price_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "is_active": {
+                        "type": "boolean"
+                      },
+                      "created_at": {
+                        "type": "string"
+                      },
+                      "updated_at": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/plans/{id}": {
+      "get": {
+        "summary": "Get plan by ID",
+        "tags": [
+          "Plans"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "success": true,
+                  "message": "Success",
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "name",
+                      "price_monthly",
+                      "price_yearly",
+                      "max_documents_per_day",
+                      "features",
+                      "stripe_product_id",
+                      "stripe_monthly_price_id",
+                      "stripe_yearly_price_id",
+                      "is_active",
+                      "created_at",
+                      "updated_at"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "free"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "pro"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "ultimate"
+                            ]
+                          }
+                        ]
+                      },
+                      "price_monthly": {
+                        "type": "number"
+                      },
+                      "price_yearly": {
+                        "type": "number"
+                      },
+                      "max_documents_per_day": {
+                        "type": "number"
+                      },
+                      "features": {},
+                      "stripe_product_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "stripe_monthly_price_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "stripe_yearly_price_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "is_active": {
+                        "type": "boolean"
+                      },
+                      "created_at": {
+                        "type": "string"
+                      },
+                      "updated_at": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update plan fields",
+        "tags": [
+          "Plans"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "price_monthly": {
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  "price_yearly": {
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  "max_documents_per_day": {
+                    "minimum": 1,
+                    "type": "number"
+                  },
+                  "features": {},
+                  "stripe_product_id": {
+                    "type": "string"
+                  },
+                  "stripe_monthly_price_id": {
+                    "type": "string"
+                  },
+                  "stripe_yearly_price_id": {
+                    "type": "string"
+                  },
+                  "is_active": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "success": true,
+                  "message": "Success",
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "name",
+                      "price_monthly",
+                      "price_yearly",
+                      "max_documents_per_day",
+                      "features",
+                      "stripe_product_id",
+                      "stripe_monthly_price_id",
+                      "stripe_yearly_price_id",
+                      "is_active",
+                      "created_at",
+                      "updated_at"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "free"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "pro"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "ultimate"
+                            ]
+                          }
+                        ]
+                      },
+                      "price_monthly": {
+                        "type": "number"
+                      },
+                      "price_yearly": {
+                        "type": "number"
+                      },
+                      "max_documents_per_day": {
+                        "type": "number"
+                      },
+                      "features": {},
+                      "stripe_product_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "stripe_monthly_price_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "stripe_yearly_price_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "is_active": {
+                        "type": "boolean"
+                      },
+                      "created_at": {
+                        "type": "string"
+                      },
+                      "updated_at": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Deactivate a plan (soft delete)",
+        "tags": [
+          "Plans"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "success": true,
+                  "message": "Success",
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "name",
+                      "price_monthly",
+                      "price_yearly",
+                      "max_documents_per_day",
+                      "features",
+                      "stripe_product_id",
+                      "stripe_monthly_price_id",
+                      "stripe_yearly_price_id",
+                      "is_active",
+                      "created_at",
+                      "updated_at"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "free"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "pro"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "ultimate"
+                            ]
+                          }
+                        ]
+                      },
+                      "price_monthly": {
+                        "type": "number"
+                      },
+                      "price_yearly": {
+                        "type": "number"
+                      },
+                      "max_documents_per_day": {
+                        "type": "number"
+                      },
+                      "features": {},
+                      "stripe_product_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "stripe_monthly_price_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "stripe_yearly_price_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "is_active": {
+                        "type": "boolean"
+                      },
+                      "created_at": {
+                        "type": "string"
+                      },
+                      "updated_at": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/": {
+      "get": {
+        "summary": "List all subscriptions",
+        "tags": [
+          "Subscriptions"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "trialing"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "active"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "canceled"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "expired"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "past_due"
+                  ]
+                }
+              ]
+            },
+            "in": "query",
+            "name": "status",
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "success": true,
+                  "message": "Success",
+                  "data": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "status",
+                        "plan",
+                        "user",
+                        "stripe_customer_id",
+                        "stripe_subscription_id",
+                        "current_period_start",
+                        "current_period_end",
+                        "trial_ends_at",
+                        "canceled_at",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "trialing"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "active"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "canceled"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "expired"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "past_due"
+                              ]
+                            }
+                          ]
+                        },
+                        "plan": {
+                          "type": "object",
+                          "required": [
+                            "id",
+                            "name",
+                            "max_documents_per_day",
+                            "price_monthly",
+                            "price_yearly"
+                          ],
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "free"
+                                  ]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "pro"
+                                  ]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "ultimate"
+                                  ]
+                                }
+                              ]
+                            },
+                            "max_documents_per_day": {
+                              "type": "number"
+                            },
+                            "price_monthly": {
+                              "type": "number"
+                            },
+                            "price_yearly": {
+                              "type": "number"
+                            }
+                          }
+                        },
+                        "user": {
+                          "type": "object",
+                          "required": [
+                            "id",
+                            "email",
+                            "username"
+                          ],
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "username": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "stripe_customer_id": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "stripe_subscription_id": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "current_period_start": {
+                          "type": "string"
+                        },
+                        "current_period_end": {
+                          "type": "string"
+                        },
+                        "trial_ends_at": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "canceled_at": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Manually assign a plan to a user",
+        "tags": [
+          "Subscriptions"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "user_uuid",
+                  "plan_uuid",
+                  "current_period_start",
+                  "current_period_end"
+                ],
+                "properties": {
+                  "user_uuid": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "plan_uuid": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "status": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "trialing"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "active"
+                        ]
+                      }
+                    ]
+                  },
+                  "current_period_start": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "current_period_end": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "trial_ends_at": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "stripe_customer_id": {
+                    "type": "string"
+                  },
+                  "stripe_subscription_id": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "success": true,
+                  "message": "Success",
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "status",
+                      "plan",
+                      "user",
+                      "stripe_customer_id",
+                      "stripe_subscription_id",
+                      "current_period_start",
+                      "current_period_end",
+                      "trial_ends_at",
+                      "canceled_at",
+                      "created_at",
+                      "updated_at"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "trialing"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "active"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "canceled"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "expired"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "past_due"
+                            ]
+                          }
+                        ]
+                      },
+                      "plan": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "name",
+                          "max_documents_per_day",
+                          "price_monthly",
+                          "price_yearly"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "free"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "pro"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "ultimate"
+                                ]
+                              }
+                            ]
+                          },
+                          "max_documents_per_day": {
+                            "type": "number"
+                          },
+                          "price_monthly": {
+                            "type": "number"
+                          },
+                          "price_yearly": {
+                            "type": "number"
+                          }
+                        }
+                      },
+                      "user": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "email",
+                          "username"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "username": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "stripe_customer_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "stripe_subscription_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "current_period_start": {
+                        "type": "string"
+                      },
+                      "current_period_end": {
+                        "type": "string"
+                      },
+                      "trial_ends_at": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "canceled_at": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "created_at": {
+                        "type": "string"
+                      },
+                      "updated_at": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/{id}": {
+      "get": {
+        "summary": "Get subscription by ID",
+        "tags": [
+          "Subscriptions"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "success": true,
+                  "message": "Success",
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "status",
+                      "plan",
+                      "user",
+                      "stripe_customer_id",
+                      "stripe_subscription_id",
+                      "current_period_start",
+                      "current_period_end",
+                      "trial_ends_at",
+                      "canceled_at",
+                      "created_at",
+                      "updated_at"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "trialing"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "active"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "canceled"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "expired"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "past_due"
+                            ]
+                          }
+                        ]
+                      },
+                      "plan": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "name",
+                          "max_documents_per_day",
+                          "price_monthly",
+                          "price_yearly"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "free"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "pro"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "ultimate"
+                                ]
+                              }
+                            ]
+                          },
+                          "max_documents_per_day": {
+                            "type": "number"
+                          },
+                          "price_monthly": {
+                            "type": "number"
+                          },
+                          "price_yearly": {
+                            "type": "number"
+                          }
+                        }
+                      },
+                      "user": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "email",
+                          "username"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "username": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "stripe_customer_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "stripe_subscription_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "current_period_start": {
+                        "type": "string"
+                      },
+                      "current_period_end": {
+                        "type": "string"
+                      },
+                      "trial_ends_at": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "canceled_at": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "created_at": {
+                        "type": "string"
+                      },
+                      "updated_at": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update subscription details",
+        "tags": [
+          "Subscriptions"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "plan_uuid": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "status": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "trialing"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "active"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "canceled"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "expired"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "past_due"
+                        ]
+                      }
+                    ]
+                  },
+                  "current_period_end": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "trial_ends_at": {
+                    "anyOf": [
+                      {
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "stripe_customer_id": {
+                    "type": "string"
+                  },
+                  "stripe_subscription_id": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "success": true,
+                  "message": "Success",
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "status",
+                      "plan",
+                      "user",
+                      "stripe_customer_id",
+                      "stripe_subscription_id",
+                      "current_period_start",
+                      "current_period_end",
+                      "trial_ends_at",
+                      "canceled_at",
+                      "created_at",
+                      "updated_at"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "trialing"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "active"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "canceled"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "expired"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "past_due"
+                            ]
+                          }
+                        ]
+                      },
+                      "plan": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "name",
+                          "max_documents_per_day",
+                          "price_monthly",
+                          "price_yearly"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "free"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "pro"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "ultimate"
+                                ]
+                              }
+                            ]
+                          },
+                          "max_documents_per_day": {
+                            "type": "number"
+                          },
+                          "price_monthly": {
+                            "type": "number"
+                          },
+                          "price_yearly": {
+                            "type": "number"
+                          }
+                        }
+                      },
+                      "user": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "email",
+                          "username"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "username": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "stripe_customer_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "stripe_subscription_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "current_period_start": {
+                        "type": "string"
+                      },
+                      "current_period_end": {
+                        "type": "string"
+                      },
+                      "trial_ends_at": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "canceled_at": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "created_at": {
+                        "type": "string"
+                      },
+                      "updated_at": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Cancel a subscription",
+        "tags": [
+          "Subscriptions"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "success": true,
+                  "message": "Success",
+                  "data": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "status",
+                      "plan",
+                      "user",
+                      "stripe_customer_id",
+                      "stripe_subscription_id",
+                      "current_period_start",
+                      "current_period_end",
+                      "trial_ends_at",
+                      "canceled_at",
+                      "created_at",
+                      "updated_at"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "trialing"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "active"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "canceled"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "expired"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "enum": [
+                              "past_due"
+                            ]
+                          }
+                        ]
+                      },
+                      "plan": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "name",
+                          "max_documents_per_day",
+                          "price_monthly",
+                          "price_yearly"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "free"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "pro"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "ultimate"
+                                ]
+                              }
+                            ]
+                          },
+                          "max_documents_per_day": {
+                            "type": "number"
+                          },
+                          "price_monthly": {
+                            "type": "number"
+                          },
+                          "price_yearly": {
+                            "type": "number"
+                          }
+                        }
+                      },
+                      "user": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "email",
+                          "username"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "username": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "stripe_customer_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "stripe_subscription_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "current_period_start": {
+                        "type": "string"
+                      },
+                      "current_period_end": {
+                        "type": "string"
+                      },
+                      "trial_ends_at": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "canceled_at": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "created_at": {
+                        "type": "string"
+                      },
+                      "updated_at": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/user/{userId}": {
+      "get": {
+        "summary": "Get all subscriptions for a user",
+        "tags": [
+          "Subscriptions"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "in": "path",
+            "name": "userId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "success": true,
+                  "message": "Success",
+                  "data": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "status",
+                        "plan",
+                        "user",
+                        "stripe_customer_id",
+                        "stripe_subscription_id",
+                        "current_period_start",
+                        "current_period_end",
+                        "trial_ends_at",
+                        "canceled_at",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "trialing"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "active"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "canceled"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "expired"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "past_due"
+                              ]
+                            }
+                          ]
+                        },
+                        "plan": {
+                          "type": "object",
+                          "required": [
+                            "id",
+                            "name",
+                            "max_documents_per_day",
+                            "price_monthly",
+                            "price_yearly"
+                          ],
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "free"
+                                  ]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "pro"
+                                  ]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "ultimate"
+                                  ]
+                                }
+                              ]
+                            },
+                            "max_documents_per_day": {
+                              "type": "number"
+                            },
+                            "price_monthly": {
+                              "type": "number"
+                            },
+                            "price_yearly": {
+                              "type": "number"
+                            }
+                          }
+                        },
+                        "user": {
+                          "type": "object",
+                          "required": [
+                            "id",
+                            "email",
+                            "username"
+                          ],
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "username": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "stripe_customer_id": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "stripe_subscription_id": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "current_period_start": {
+                          "type": "string"
+                        },
+                        "current_period_end": {
+                          "type": "string"
+                        },
+                        "trial_ends_at": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "canceled_at": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Registration, login, and session management"
+    },
+    {
+      "name": "Plans",
+      "description": "Plan catalog management — admin only"
+    },
+    {
+      "name": "Subscriptions",
+      "description": "User subscription management — admin only"
+    }
+  ]
+}
