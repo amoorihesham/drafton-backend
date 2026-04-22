@@ -1,4 +1,4 @@
-export type PlanDto = {
+export type PlanFullType = {
   internal_id: number;
   id: string;
   name: "free" | "pro" | "ultimate";

@@ -1,5 +1,5 @@
 import { IMailService } from "@/shared/services/mail/mail.service.interface";
-import { AuthConfig, CreateUserDto, FullUserType, LoginDto, RefreshDto, UserResponseDto } from "./types";
+import { AuthConfig, CreateUserDto, LoginDto, RefreshDto } from "./types";
 import { AuthError } from "@/shared/errors/http.errors";
 import { AUTH_ERROR_CODES, AUTH_MESSAGES } from "./constants/messages";
 import { STATUS_CODES } from "@/shared/http/CONSTANTS";
@@ -9,7 +9,7 @@ import { generateJwtToken, verifyJwtToken } from "./utils/jwt";
 import { ITokenStroe } from "./interfaces/token-store.interface";
 import { IAuthRepository } from "./interfaces/repository.interface";
 import { ISubscriptionService } from "@/modules/subscription/interfaces/service.interface";
-import { MeResponseDto } from "./types";
+import { User, UserResponseDto } from "@/types/shared/user";
 
 export class AuthService {
   constructor(
@@ -190,18 +190,7 @@ export class AuthService {
     return this.toUserResponseDto(updatedUser);
   }
 
-  async getMe(userId: string): Promise<MeResponseDto> {
-    const user = await this.authRepository.findUserById(userId);
-    if (!user) {
-      throw new AuthError(AUTH_MESSAGES.USER_NOT_FOUND, STATUS_CODES.NOT_FOUND, AUTH_ERROR_CODES.USER_NOT_FOUND);
-    }
-
-    const subscription = await this.subscriptionService.getActiveSubscription(user.internal_id);
-
-    return { user: this.toUserResponseDto(user), subscription };
-  }
-
-  private toUserResponseDto(user: FullUserType): UserResponseDto {
+  private toUserResponseDto(user: User): UserResponseDto {
     return {
       id: user.id,
       email: user.email,

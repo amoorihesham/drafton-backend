@@ -10,7 +10,10 @@ export type ActiveSubscriptionDto = {
   trialEndsAt: Date | null;
 } | null;
 
-export type SubscriptionDetailDto = {
+export type SubscriptionFullType = {
+  internal_id: number;
+  user_id: number;
+  plan_id: number;
   id: string;
   status: SubscriptionStatus;
   current_period_start: Date;
@@ -21,18 +24,6 @@ export type SubscriptionDetailDto = {
   stripe_subscription_id: string | null;
   created_at: Date;
   updated_at: Date;
-  plan: {
-    id: string;
-    name: "free" | "pro" | "ultimate";
-    max_documents_per_day: number;
-    price_monthly: number;
-    price_yearly: number;
-  };
-  user: {
-    id: string;
-    email: string;
-    username: string;
-  };
 };
 
 export type AdminCreateSubscriptionDto = {

@@ -1,14 +1,11 @@
-import {
-  GenerateProposalDto,
-  ProposalDto,
-  ProposalListItemDto,
-  UpdateProposalDto,
-} from "../types/index.js";
-
 export interface IProposalService {
-  generate(userUuid: string, dto: GenerateProposalDto): Promise<ProposalDto>;
+  generate(userId: string, dto: GenerateProposalDto): Promise<ProposalDto>;
   getById(userUuid: string, id: string): Promise<ProposalDto>;
-  getAll(userUuid: string, page: number, pageSize: number): Promise<{
+  getAll(
+    userUuid: string,
+    page: number,
+    pageSize: number,
+  ): Promise<{
     items: ProposalListItemDto[];
     total: number;
     page: number;

@@ -26,7 +26,7 @@ export class AuthRepository implements IAuthRepository {
   }
 
   async createUser(dto: CreateUserDto) {
-    return await this.db
+    return this.db
       .insert(users)
       .values({
         email: dto.email,
@@ -39,11 +39,7 @@ export class AuthRepository implements IAuthRepository {
   }
 
   async updateUser(userId: string, dto: Partial<FullUserType>) {
-    return this.db
-      .update(users)
-      .set(dto)
-      .where(eq(users.id, userId))
-      .returning();
+    return this.db.update(users).set(dto).where(eq(users.id, userId)).returning();
   }
   async deleteUser(userId: string) {
     return this.db.delete(users).where(eq(users.id, userId));

@@ -3,15 +3,13 @@ import { IAnthropicService } from "@/shared/services/anthropic/anthropic.service
 import { IProposalRepository } from "./interfaces/repository.interface.js";
 import { IProposalService } from "./interfaces/service.interface.js";
 import {
+  CreateProposalType,
   GenerateProposalDto,
   ProposalDto,
   ProposalListItemDto,
   UpdateProposalDto,
 } from "./types/index.js";
-import {
-  ProposalNotFoundError,
-  ProposalInProgressError,
-} from "./constants/errors.js";
+import { ProposalNotFoundError, ProposalInProgressError } from "./constants/errors.js";
 import { AiProposalContent, ProposalContent } from "./schemas/block.schema.js";
 import { Database } from "@/db/connection.js";
 import { users } from "@/db/schema/index.js";
@@ -22,12 +20,12 @@ const DEFAULT_TITLE = "Untitled proposal";
 export class ProposalService implements IProposalService {
   constructor(
     private readonly proposalRepository: IProposalRepository,
+
     private readonly anthropicService: IAnthropicService,
     private readonly db: Database,
   ) {}
 
-  async generate(userUuid: string, dto: GenerateProposalDto): Promise<ProposalDto> {
-    const hasInProgress = await this.proposalRepository.hasInProgressForUser(userUuid);
+  async generate(userUuid: string, dto: CreateProposalType): Promise<ProposalDto> {
     if (hasInProgress) {
       throw new ProposalInProgressError();
     }
@@ -54,13 +52,17 @@ export class ProposalService implements IProposalService {
     });
   }
 
-  async getById(userUuid: string, id: string): Promise<ProposalDto> {
-    const proposal = await this.proposalRepository.findByIdForUser(id, userUuid);
+  async getById(id: string): Promise<ProposalDto> {
+    const proposal = await this.proposalRepository.findById(id);
     if (!proposal) throw new ProposalNotFoundError();
     return proposal;
   }
 
-  async getAll(userUuid: string, page: number, pageSize: number): Promise<{
+  async getAll(
+    userUuid: string,
+    page: number,
+    pageSize: number,
+  ): Promise<{
     items: ProposalListItemDto[];
     total: number;
     page: number;

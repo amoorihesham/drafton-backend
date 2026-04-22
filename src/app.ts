@@ -20,6 +20,8 @@ import { AnthropicService } from "./shared/services/anthropic/anthropic.service.
 import { FixtureAnthropicService } from "./shared/services/anthropic/fixture.service.js";
 import { IAnthropicService } from "./shared/services/anthropic/anthropic.service.interface.js";
 import { createDatabaseConnection } from "./db/connection.js";
+import { buildUsersModule } from "./modules/users/users.module.js";
+import { userRoutes } from "./modules/users/users.routes.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -90,7 +92,9 @@ export async function buildApp(): Promise<FastifyInstance> {
         });
 
   if (app.config.AI_PROVIDER === "anthropic" && !app.config.ANTHROPIC_API_KEY) {
-    throw new Error("ANTHROPIC_API_KEY is required when AI_PROVIDER=anthropic. Set AI_PROVIDER=fixture for local testing.");
+    throw new Error(
+      "ANTHROPIC_API_KEY is required when AI_PROVIDER=anthropic. Set AI_PROVIDER=fixture for local testing.",
+    );
   }
 
   //CONTAINERS
@@ -98,6 +102,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   const authController = buildAuthModule(db, redis, mailService, subscriptionService, app.config);
   const planController = buildPlanModule(db);
   const proposalController = buildProposalModule(db, anthropicService);
+  const usersController = buildUsersModule(db);
 
   app.setErrorHandler(errorHandler);
 
@@ -107,8 +112,11 @@ export async function buildApp(): Promise<FastifyInstance> {
       v1.get("/hello", async () => ({ message: "Hello From Drafton Backend" }));
       v1.register(authRoutes(authController, app.config.JWT_ACCESS_SECRET), { prefix: "/auth" });
       v1.register(planRoutes(planController, app.config.JWT_ACCESS_SECRET), { prefix: "/plans" });
-      v1.register(subscriptionRoutes(subscriptionController, app.config.JWT_ACCESS_SECRET), { prefix: "/subscriptions" });
+      v1.register(subscriptionRoutes(subscriptionController, app.config.JWT_ACCESS_SECRET), {
+        prefix: "/subscriptions",
+      });
       v1.register(proposalRoutes(proposalController, app.config.JWT_ACCESS_SECRET), { prefix: "/proposals" });
+      v1.register(userRoutes(usersController, app.config.JWT_ACCESS_SECRET), { prefix: "/users" });
     },
     { prefix: "/api/v1" },
   );

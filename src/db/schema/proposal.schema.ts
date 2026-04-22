@@ -10,6 +10,7 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import { users } from "./user.schema.js";
+import { ProposalContent } from "@/modules/proposals/types/index.js";
 
 export const proposalStatusEnum = pgEnum("proposal_status", [
   "draft",
@@ -29,7 +30,7 @@ export const proposals = pgTable(
     title: text("title").notNull(),
     status: proposalStatusEnum("status").notNull().default("draft"),
     prompt: text("prompt").notNull(),
-    content: jsonb("content").notNull().default({ sections: [] }),
+    content: jsonb("content").notNull().default({ sections: [] }).$type<ProposalContent>(),
     model: text("model").notNull(),
     created_at: timestamp("created_at").notNull().defaultNow(),
     updated_at: timestamp("updated_at").notNull().defaultNow(),
