@@ -15,6 +15,13 @@
       "when": 1776691160188,
       "tag": "0001_magical_nightshade",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776844906151,
+      "tag": "0002_dark_robin_chapel",
+      "breakpoints": true
     }
   ]
 }

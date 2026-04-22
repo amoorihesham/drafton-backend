@@ -23,6 +23,12 @@ export const ConfigSchema = Type.Object({
   SMTP_USER: Type.String(),
   SMTP_PASS: Type.String(),
   SMTP_FROM: Type.String(),
+
+  AI_PROVIDER: Type.Union([Type.Literal("anthropic"), Type.Literal("fixture")], { default: "anthropic" }),
+  ANTHROPIC_API_KEY: Type.String({ default: "" }),
+  ANTHROPIC_MODEL: Type.String({ default: "claude-sonnet-4-6" }),
+  AI_MAX_TOKENS: Type.Number({ default: 8000 }),
+  AI_TIMEOUT_MS: Type.Number({ default: 60000 }),
 });
 
 export type Config = Static<typeof ConfigSchema>;

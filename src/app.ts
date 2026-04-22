@@ -11,9 +11,14 @@ import { createRedisConnection } from "./redis/index.js";
 import { buildAuthModule } from "./modules/auth/auth.module.js";
 import { buildSubscriptionModule } from "./modules/subscription/subscription.module.js";
 import { buildPlanModule } from "./modules/plans/plans.module.js";
+import { buildProposalModule } from "./modules/proposals/proposal.module.js";
 import { planRoutes } from "./modules/plans/plans.routes.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { subscriptionRoutes } from "./modules/subscription/subscription.routes.js";
+import { proposalRoutes } from "./modules/proposals/proposal.routes.js";
+import { AnthropicService } from "./shared/services/anthropic/anthropic.service.js";
+import { FixtureAnthropicService } from "./shared/services/anthropic/fixture.service.js";
+import { IAnthropicService } from "./shared/services/anthropic/anthropic.service.interface.js";
 import { createDatabaseConnection } from "./db/connection.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
@@ -46,6 +51,7 @@ export async function buildApp(): Promise<FastifyInstance> {
         { name: "Auth", description: "Registration, login, and session management" },
         { name: "Plans", description: "Plan catalog management — admin only" },
         { name: "Subscriptions", description: "User subscription management — admin only" },
+        { name: "Proposals", description: "AI-generated proposal documents" },
       ],
       components: {
         securitySchemes: {
@@ -73,10 +79,25 @@ export async function buildApp(): Promise<FastifyInstance> {
     from: app.config.SMTP_FROM,
   });
 
+  const anthropicService: IAnthropicService =
+    app.config.AI_PROVIDER === "fixture"
+      ? new FixtureAnthropicService()
+      : new AnthropicService({
+          apiKey: app.config.ANTHROPIC_API_KEY,
+          model: app.config.ANTHROPIC_MODEL,
+          maxTokens: app.config.AI_MAX_TOKENS,
+          timeoutMs: app.config.AI_TIMEOUT_MS,
+        });
+
+  if (app.config.AI_PROVIDER === "anthropic" && !app.config.ANTHROPIC_API_KEY) {
+    throw new Error("ANTHROPIC_API_KEY is required when AI_PROVIDER=anthropic. Set AI_PROVIDER=fixture for local testing.");
+  }
+
   //CONTAINERS
   const { subscriptionService, subscriptionController } = buildSubscriptionModule(db);
   const authController = buildAuthModule(db, redis, mailService, subscriptionService, app.config);
   const planController = buildPlanModule(db);
+  const proposalController = buildProposalModule(db, anthropicService);
 
   app.setErrorHandler(errorHandler);
 
@@ -87,6 +108,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       v1.register(authRoutes(authController, app.config.JWT_ACCESS_SECRET), { prefix: "/auth" });
       v1.register(planRoutes(planController, app.config.JWT_ACCESS_SECRET), { prefix: "/plans" });
       v1.register(subscriptionRoutes(subscriptionController, app.config.JWT_ACCESS_SECRET), { prefix: "/subscriptions" });
+      v1.register(proposalRoutes(proposalController, app.config.JWT_ACCESS_SECRET), { prefix: "/proposals" });
     },
     { prefix: "/api/v1" },
   );
